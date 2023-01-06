@@ -1,6 +1,6 @@
 -- script
 script_name('OS Helper')
-script_version('1.3 alpha')
+script_version('1.3.1 alpha')
 script_author('deveeh')
 
 -- libraries
@@ -449,7 +449,7 @@ keyboards = {
 		}
 	}
 }
-bike = {[481] = true, [509] = true, [510] = true}
+bike = {[481] = true, [509] = true, [510] = true, [10433] = true}
 moto = {[448] = true, [461] = true, [462] = true, [463] = true, [521] = true, [522] = true, [523] = true, [581] = true, [586] = true, [1823] = true, [1913] = true, [1912] = true, [1947] = true, [1948] = true, [1949] = true, [1950] = true, [1951] = true, [1982] = true, [2006] = true}
 chars = {
 	["й"] = "q", ["ц"] = "w", ["у"] = "e", ["к"] = "r", ["е"] = "t", ["н"] = "y", ["г"] = "u", ["ш"] = "i", ["щ"] = "o", ["з"] = "p", ["х"] = "[", ["ъ"] = "]", ["ф"] = "a",
@@ -870,17 +870,17 @@ function main()
 	     	if finv.v and isKeyDown(0x46) and wasKeyPressed(0x31) then local veh, ped = storeClosestEntities(PLAYER_PED) local _, idinv = sampGetPlayerIdByCharHandle(ped) if _ then send('/faminvite '..idinv) end end
 	     	if fmenu.v and isKeyDown(0x12) and wasKeyPressed(0x46) then send('/fammenu') end
 	     	if lock.v and wasKeyPressed(0x4C) then send('/lock') end
-	     	if lock.v and wasKeyPressed(0x4A) then send('/jlock') end
+	     	if lock.v and wasKeyPressed(0x4B) then send('/jlock') end
 	     	if open.v and wasKeyPressed(0x4F) then send('/open') end
 		    if plusw.v then
 			    if isCharOnAnyBike(playerPed) and not sampIsChatInputActive() and not sampIsDialogActive() and not isSampfuncsConsoleActive() and isKeyDown(0x57) then	-- onBike&onMoto SpeedUP [[LSHIFT]] --
 						if bike[getCarModel(storeCarCharIsInNoSave(playerPed))] then
 							setGameKeyState(16, 255)
-							wait(10)
+							wait(50)
 							setGameKeyState(16, 0)
 						elseif moto[getCarModel(storeCarCharIsInNoSave(playerPed))] then
 							setGameKeyState(1, -128)
-							wait(10)
+							wait(50)
 							setGameKeyState(1, 0)
 						end
 					end
@@ -1088,7 +1088,7 @@ function getMusicList()
 end
 
 function sampev.onShowDialog(id, style, title, button1, button0, text)
-	--[[if mininghelper.v then
+	if mininghelper.v then
     if miningtool then
 	    if id == 269 or id == 0 and title:find('Обзор всех видеокарт') or title:find('Выберите видеокарту') then
 			local automining_btcoverall = 0
@@ -1319,19 +1319,19 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 		text = table.concat(dtext,'\n')
         dtext = {}
         text = text .. '\n' .. ' '
-		text = text .. '\n' .. '{ffff00}Информация\t{ffff00}Доступно снять\t{ffff00}Прибыль в час\t{ffff00}Прибыль прогнозируемая'
-		text = text .. '\n' .. '{FFFFFF}Всего: '..automining_videocards..' | {BEF781}Работают '..automining_videocardswork..'\t{FFFFFF}'..string.format("%.0f", automining_btcamountoverall)..' BTC\t{BEF781}'..automining_btcoverallph..' {FFFFFF}BTC\t{81DAF5}'..string.format("%.1f", automining_btcoverall)..' {FFFFFF}BTC' 
+		text = text .. '\n' .. color .. 'Информация\t' .. color .. 'Доступно снять\t' .. color .. 'Прибыль в час\t' .. color .. 'Прибыль прогнозируемая'
+		text = text .. '\n' .. '{FFFFFF}Всего: '..automining_videocards..' | {FFFFFF}Работают: '..automining_videocardswork..'\t{FFFFFF}'..string.format("%.0f", automining_btcamountoverall)..' BTC\t{FFFFFF}'..automining_btcoverallph..' {FFFFFF}BTC\t{FFFFFF}'..string.format("%.1f", automining_btcoverall)..' {FFFFFF}BTC' 
 			if title:find('Выберите видеокарту') then	
 				if text:find('Полка №1 | Свободна') and text:find('Полка №2 | Свободна') and text:find('Полка №3 | Свободна') and text:find('Полка №4 | Свободна') then
 					text = text .. '\n' .. ' '
-					text = text .. '\n' .. '{FF6060}- Забрать всю прибыль (Полки пусты!)'
-					text = text .. '\n' .. '{FF6060}- Запустить все видеокарты (Полки пусты!)'
-					text = text .. '\n' .. '{FF6060}- Залить жидкость (Полки пусты!)'
+					text = text .. '\n' .. color .. '>> {FFF}На полках нет видеокарт, забрать прибыль не получится'
+					text = text .. '\n' .. color .. '>> {FFF}На полках нет видеокарт, включить видеокарты не получится'
+					text = text .. '\n' .. color .. '>> {FFF}На полках нет видеокарт, залить охлаждающую жидкость не получится'
 				else
 					text = text .. '\n' .. ' '
-					text = text .. '\n' .. '{99FF99}- Забрать всю прибыль'
-					text = text .. '\n' .. '{22FF00}- Запустить все видеокарты'
-					text = text .. '\n' .. '{00FF55}- Залить жидкость (По 50%)'
+					text = text .. '\n' .. color .. '>> {FFF}Собрать прибыль'
+					text = text .. '\n' .. color .. '>> {FFF}Запустить видеокарты'
+					text = text .. '\n' .. color .. '>> {FFF}Залить охлаждающую жидкость (по 1 шт.)'
 				end
 			end
 		automining_btcoverall = 0
@@ -1374,7 +1374,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 			end
 
 		    if automining_fillall == 1 or automining_fillall == 2 or automining_fillall == 3 or automining_fillall == 4 then
-				if dialogTitle:find('Стойка №%d+%s+| Полка №'..automining_fillall..'') then
+				if title:find('Стойка №%d+%s+| Полка №'..automining_fillall..'') then
 				    sampSendDialogResponse(270,1,2,nil)
 				    automining_fillall = automining_fillall + 1
 				    worktread = lua_thread.create(PressAlt)
@@ -1403,18 +1403,16 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				end
 	    end			
 		end
-	end]]--
+	end
 	if cardlogin.v and id == 782 then sampSendDialogResponse(782, 1, -1, logincard.v) end
 	if autopay.v then 
 		if id == 756 then 
 			sampSendDialogResponse(756, 1, 0, nil)
 		end
-		if id == 759 then 
-				sampSendDialogResponse(759, 1, 0, nil)
-		end
-		if id == 672 then sampSendDialogResponse(672, 1, -1, nil) sampCloseCurrentDialogWithButton(0) return false end
-		if id == 671 then sampSendDialogResponse(671, 1, -1, nil) sampCloseCurrentDialogWithButton(0) return false end
-		if id == 760 then sampSendDialogResponse(760, 1, -1, nil) sampCloseCurrentDialogWithButton(0) return false end
+		lua_thread.create(function()
+			if id == 672 then setVirtualKeyDown(13, true) wait(50) setVirtualKeyDown(13, false) end
+			if id == 671 then setVirtualKeyDown(13, true) wait(50) setVirtualKeyDown(13, false) end
+		end)
 	end
 	if autoscreen.v and id == 10044 then
 			lua_thread.create(function() 
@@ -1426,7 +1424,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 	end
 end
 
---[[function sampev.onSendDialogResponse(id, button, list, input)
+function sampev.onSendDialogResponse(id, button, list, input)
 	if mininghelper.v then
 	  if id == 269 and list == 8 and button == 1 then
 		    automining_getbtc = 1
@@ -1449,14 +1447,14 @@ end
 function PressAlt()
     time = os.time()
 	repeat wait(500)
-		local _, id = sampGetPlayerIdByCharHandle(PLAYER_PED)
+		local _, idplayer = sampGetPlayerIdByCharHandle(PLAYER_PED)
 		local data = allocateMemory(68)
-		sampStorePlayerOnfootData(id, data)
+		sampStorePlayerOnfootData(idplayer, data)
 		setStructElement(data, 4, 2, 1024, false)
 		sampSendOnfootData(data)
 		freeMemory(data)
     until os.time() >= time+5
-end]]--
+end
 
 function sampev.onServerMessage(color, text)
 		if drugstimer.v and text:find('Здоровье пополнено на') and not text:find('говорит:') then
@@ -1656,8 +1654,8 @@ function imgui.OnDrawFrame()
 				end
 				if imgui.Checkbox(u8'Автооплата налогов', autopay) then cfg.settings.autopay = autopay.v end
 				imgui.TextQuestion(u8'Не работает с новыми диалогами')
-				--if imgui.Checkbox(u8'Mining Helper', mininghelper) then cfg.settings.mininghelper = mininghelper.v end
-				--imgui.TextQuestion(u8'Сбор прибыли, охлаждение видеокарт в пару кликов')
+				if imgui.Checkbox(u8'Mining Helper', mininghelper) then cfg.settings.mininghelper = mininghelper.v end
+				imgui.TextQuestion(u8'Сбор прибыли, охлаждение видеокарт в пару кликов')
 				if imgui.Checkbox(u8'Графическая клавиатура', keyboard) then cfg.settings.keyboard = keyboard.v end
 				if imgui.Checkbox(u8'Autoscreen', autoscreen) then cfg.settings.autoscreen = autoscreen.v end
 				imgui.TextQuestion(u8'При появлении диалога с предложением, \nавтоматически пишет /time и нажимает F8')
@@ -1979,7 +1977,7 @@ function transport()
 				if imgui.Checkbox(u8'AutoCar', autolock) then cfg.settings.autolock = autolock.v end
 				imgui.TextQuestion(u8'Активация: сесть в машину\nАвтоматическое закрытие дверей + включение двигателя')
 				if imgui.Checkbox(u8'Открыть/Закрыть двери', lock) then cfg.settings.lock = lock.v end
-				imgui.TextQuestion(u8'Активация: L, J (аренд. т/с)')
+				imgui.TextQuestion(u8'Активация: L, K (аренд. т/с)')
 				if imgui.Checkbox(u8'Ремкомплект', rem) then cfg.settings.rem = fill.v end
 				imgui.TextQuestion(u8'Использовать ремкомплект: R')
 				if imgui.Checkbox(u8'Канистра', fill) then cfg.settings.fill = fill.v end
