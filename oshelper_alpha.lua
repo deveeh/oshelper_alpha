@@ -166,6 +166,7 @@ local cfg = inicfg.load({
 		vskin = false,
 		fish = false,
 		infrun = false,
+		ztimerstatus = false,
 		prsh1 = 0,
 		prsh2 = 0,
 		prsh3 = 56,
@@ -239,7 +240,7 @@ local fammsg = imgui.ImBuffer(''..cfg.settings.fammsg, 256)
 local prstring = imgui.ImBool(cfg.settings.prstring)
 local bchat = imgui.ImBool(cfg.settings.bchat)
 local stringmsg = imgui.ImBuffer(''..cfg.settings.stringmsg, 256)
-local bmsg = imgui.ImBuffer(''..cfg.settings.stringmsg, 256)
+local bmsg = imgui.ImBuffer(''..cfg.settings.bmsg, 256)
 local almsg = imgui.ImBuffer(''..cfg.settings.almsg,256)
 local adbox = imgui.ImBool(cfg.settings.adbox)
 local adbox2 = imgui.ImBool(cfg.settings.adbox2)
@@ -258,6 +259,7 @@ local rem = imgui.ImBool(cfg.settings.rem)
 local balloon = imgui.ImBool(cfg.settings.balloon)
 local ballooncolor = imgui.ImBool(false)
 local fill = imgui.ImBool(cfg.settings.fill)
+local ztimerstatus = imgui.ImBool(cfg.settings.ztimerstatus)
 local fov = imgui.ImInt(cfg.settings.fov)
 local mask = imgui.ImBool(cfg.settings.mask)
 local move = imgui.ImBool(cfg.keyboard.move)
@@ -622,8 +624,8 @@ function main()
 				sampSendChat('/findibiz '..num) 
 			end
 		end)
-	        sampRegisterChatCommand('biz', function() 
-	        if cmds.v then 
+	  sampRegisterChatCommand('biz', function() 
+	    if cmds.v then 
 				sampSendChat('/bizinfo') 
 			end
 		end)
@@ -806,7 +808,6 @@ function main()
         inicfg.save(cfg, 'OSHelper.ini')
         if cfg.settings.cheatcode == '' then cfg.settings.cheatcode = 'oh' cheatcode = imgui.ImBuffer(tostring(cfg.settings.cheatcode), 256) end
     		if active.v == 1 and testCheat(cfg.settings.cheatcode) then window.v = not window.v end
-
     		if drift.v then
 	    		if isCharInAnyCar(playerPed) then 
 						local car = storeCarCharIsInNoSave(playerPed)
@@ -885,6 +886,11 @@ function main()
 						end
 					end
 				end	
+				if ztimer == 0 then
+					ztimer = ztimer - 1
+					msg('Метка особо опасного преступника слетела, можете безопасно выходить из игры.')
+					wait(1000)
+				end
 			end
 		end
 	end
@@ -1061,6 +1067,10 @@ function piar()
 			wait(1000)
 			if pronoroff and adbox.v then
 				send('/ad 1 '..u8:decode(admsg1.v))
+			end
+			wait(1000)
+			if pronoroff and bchat.v then
+				send('/b '..u8:decode(bmsg.v))
 			end
 			wait(2000)
 			if pronoroff and prstring.v then
@@ -1324,14 +1334,14 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 			if title:find('Выберите видеокарту') then	
 				if text:find('Полка №1 | Свободна') and text:find('Полка №2 | Свободна') and text:find('Полка №3 | Свободна') and text:find('Полка №4 | Свободна') then
 					text = text .. '\n' .. ' '
-					text = text .. '\n' .. color .. '>> {FFF}На полках нет видеокарт, забрать прибыль не получится'
-					text = text .. '\n' .. color .. '>> {FFF}На полках нет видеокарт, включить видеокарты не получится'
+					text = text .. '\n' .. color .. '>> {FFFFFF}На полках нет видеокарт, забрать прибыль не получится'
+					text = text .. '\n' .. color .. '>> {FFFFFF}На полках нет видеокарт, включить видеокарты не получится'
 					text = text .. '\n' .. color .. '>> {FFF}На полках нет видеокарт, залить охлаждающую жидкость не получится'
 				else
 					text = text .. '\n' .. ' '
-					text = text .. '\n' .. color .. '>> {FFF}Собрать прибыль'
-					text = text .. '\n' .. color .. '>> {FFF}Запустить видеокарты'
-					text = text .. '\n' .. color .. '>> {FFF}Залить охлаждающую жидкость (по 1 шт.)'
+					text = text .. '\n' .. color .. '>> {FFFFFF}Собрать прибыль'
+					text = text .. '\n' .. color .. '>> {FFFFFF}Запустить видеокарты'
+					text = text .. '\n' .. color .. '>> {FFFFFF}Залить охлаждающую жидкость (по 1 шт.)'
 				end
 			end
 		automining_btcoverall = 0
@@ -1405,14 +1415,31 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 		end
 	end
 	if cardlogin.v and id == 782 then sampSendDialogResponse(782, 1, -1, logincard.v) end
-	if autopay.v then 
-		if id == 756 then 
-			sampSendDialogResponse(756, 1, 0, nil)
+	if ztimerstatus.v then
+		if id == 0 and title:find('Внимание!') then
+				lua_thread.create(function() 
+				msg('Вы помечены как опасный преступник, отсчёт 10 минут пошёл.')
+				ztimer = 600
+					while ztimer > 0 do
+						printStringNow(u8'Z-Timer: ~r~~h~'..ztimer..' ~w~sec.', 1500) 
+						ztimer = ztimer - 1
+						wait(1000)
+					end
+				end)
+				return false
 		end
-		lua_thread.create(function()
-			if id == 672 then setVirtualKeyDown(13, true) wait(50) setVirtualKeyDown(13, false) end
-			if id == 671 then setVirtualKeyDown(13, true) wait(50) setVirtualKeyDown(13, false) end
-		end)
+	end
+	if autopay.v then 
+		if id == 756 then  -- Список бизов
+			sampSendDialogResponse(id, 1, 0, "")
+		end
+		
+		if id == 672 then -- Кнопка оплаты
+			sampSendDialogResponse(id, 1, -1, "")
+			return
+		end
+			--if id == 672 then sampSendDialogResponse(672, 1, -1, nil) sampCloseCurrentDialogWithButton(1) return false end
+			--if id == 671 then sampSendDialogResponse(671, 1, -1, nil) sampCloseCurrentDialogWithButton(1) return false end
 	end
 	if autoscreen.v and id == 10044 then
 			lua_thread.create(function() 
@@ -1550,8 +1577,8 @@ function sampev.onServerMessage(color, text) --jobhelper
 		if fish.v then
 			if text:find('Вам добавлено: предмет "Ларец рыболова". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        fishcase = fishcase + 1
-	    elseif text:find('Вам добавлено: предмет "Рыба %A". Чтобы открыть инвентарь,') and not text:find('говорит:') then
-	    		fishsalary = fishsalary + 1 
+	    elseif text:find('Вам добавлено: предмет "Рыба (%A+)". Чтобы открыть инвентарь,') and not text:find('говорит:') then
+	    		fishsalary = fishsalary + 15000 
 	    end
 		end
 end
@@ -1941,6 +1968,8 @@ function character()
 					imgui.TextQuestion(u8'При вводе 0 в поле, функция будет выключена')
 					imgui.PopItemWidth() 
 				end
+				if imgui.Checkbox(u8'Z-Timer', ztimerstatus) then cfg.settings.ztimerstatus = ztimerstatus.v end
+				imgui.TextQuestion(u8'После выдачи метки Z, начнется отсчёт 600 секунд.')
 				if imgui.Checkbox(u8'Авто-кликер', balloon) then cfg.settings.balloon = balloon.v end
 				imgui.TextQuestion(u8'Активация: ALT + C (зажатие)\nКликер для сборки шара/выкапывания клада и т.п.')
 				if imgui.Checkbox(u8'Бесконечный бег', infrun) then cfg.settings.infrun = infrun.v end
@@ -1978,7 +2007,7 @@ function transport()
 				imgui.TextQuestion(u8'Активация: сесть в машину\nАвтоматическое закрытие дверей + включение двигателя')
 				if imgui.Checkbox(u8'Открыть/Закрыть двери', lock) then cfg.settings.lock = lock.v end
 				imgui.TextQuestion(u8'Активация: L, K (аренд. т/с)')
-				if imgui.Checkbox(u8'Ремкомплект', rem) then cfg.settings.rem = fill.v end
+				if imgui.Checkbox(u8'Ремкомплект', rem) then cfg.settings.rem = rem.v end
 				imgui.TextQuestion(u8'Использовать ремкомплект: R')
 				if imgui.Checkbox(u8'Канистра', fill) then cfg.settings.fill = fill.v end
 				imgui.TextQuestion(u8'Использовать канистру: B')
@@ -2119,6 +2148,7 @@ function jobhelperimgui()
         imgui.SetNextWindowSize(imgui.ImVec2(220, 115), imgui.Cond.FirstUseEver)
         imgui.Begin('Fish Helper (OS v'..thisScript().version..')##fishhelper', fishhelper, imgui.WindowFlags.NoResize)
             imgui.Text(u8'Заработок: '..fishsalary..u8' руб.')
+            imgui.TextQuestion(u8'Заработок приблизителен, 1 рыба = 15.000руб')
             imgui.Text(u8'Ларцы: '..fishcase..u8' шт.')
             --imgui.SetCursorPos(imgui.ImVec2(300, 382.5))
             if imgui.Button(u8'Очистить статистику', imgui.ImVec2(205, 20)) then
