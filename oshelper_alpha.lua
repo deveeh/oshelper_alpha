@@ -1,6 +1,6 @@
 -- script
 script_name('OS Helper')
-script_version('1.3.1 alpha')
+script_version('1.3.2 alpha')
 script_author('deveeh')
 
 -- libraries
@@ -1423,7 +1423,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 					while ztimer > 0 do
 						printStringNow(u8'Z-Timer: ~r~~h~'..ztimer..' ~w~sec.', 1500) 
 						ztimer = ztimer - 1
-						wait(1000)
+						wait(1000)à
 					end
 				end)
 				return false
