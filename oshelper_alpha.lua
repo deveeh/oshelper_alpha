@@ -1423,7 +1423,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 					while ztimer > 0 do
 						printStringNow(u8'Z-Timer: ~r~~h~'..ztimer..' ~w~sec.', 1500) 
 						ztimer = ztimer - 1
-						wait(1000)à
+						wait(1000)
 					end
 				end)
 				return false
