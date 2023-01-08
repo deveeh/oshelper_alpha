@@ -179,6 +179,7 @@ local cfg = inicfg.load({
 		delay = 30,
 		edelay = 0,
 		fisheye = false,
+		autoprize = false,
 		logincard = 123456,
 		fov = 101,
 	},
@@ -214,6 +215,7 @@ local color = cfg.settings.color
 local textcolor = '{c7c7c7}'
 local capcha = imgui.ImBool(false)
 local eat = imgui.ImBool(cfg.settings.eat)
+local autoprize = imgui.ImBool(cfg.settings.autoprize)
 local drift = imgui.ImBool(cfg.settings.drift)
 local active = imgui.ImInt(cfg.settings.active)
 local edelay = imgui.ImInt(cfg.settings.edelay)
@@ -1429,6 +1431,17 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				return false
 		end
 	end
+	if autoprize.v then
+		if id == 519 and text:find('»» Следующая страница') then 
+			sampSendDialogResponse(id, 1, 1, "")
+		else
+			sampSendDialogResponse(id, 1, 0, "")
+			return false
+		end
+	end
+	if id == 520 then 
+		sampSendDialogResponse(id, 1, -1, "")
+	end
 	if autopay.v then 
 		if id == 756 then  -- Список бизов
 			sampSendDialogResponse(id, 1, 0, "")
@@ -1681,6 +1694,8 @@ function imgui.OnDrawFrame()
 				end
 				if imgui.Checkbox(u8'Автооплата налогов', autopay) then cfg.settings.autopay = autopay.v end
 				imgui.TextQuestion(u8'Не работает с новыми диалогами')
+				if imgui.Checkbox(u8'Автосбор ежедневных призов', autoprize) then cfg.settings.autoprize = autoprize.v end
+				imgui.TextQuestion(u8'Автоматически собирает призы в /dw_prizes')
 				if imgui.Checkbox(u8'Mining Helper', mininghelper) then cfg.settings.mininghelper = mininghelper.v end
 				imgui.TextQuestion(u8'Сбор прибыли, охлаждение видеокарт в пару кликов')
 				if imgui.Checkbox(u8'Графическая клавиатура', keyboard) then cfg.settings.keyboard = keyboard.v end
