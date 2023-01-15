@@ -1709,7 +1709,7 @@ function imgui.OnDrawFrame()
 				        	if imgui.Button(u8'Обновить', imgui.ImVec2(135, 20)) then
 				        		imgui.ShowCursor = false
 				        		imgui.Process = false
-					          autoupdate("https://raw.githubusercontent.com/deveeh/oshelper_alpha/master/oshelper_alpha.lua", '['..string.upper(thisScript().name)..']: ', "")
+					          autoupdate("https://raw.githubusercontent.com/deveeh/oshelper_alpha/master/update.json", '['..string.upper(thisScript().name)..']: ', "")
 				        	end
 			    end
 			  end)
