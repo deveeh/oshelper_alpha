@@ -1,6 +1,6 @@
 -- script
 script_name('OS Helper')
-script_version('1.4 alpha')
+script_version('1.4.1 alpha')
 script_author('deveeh')
 
 -- libraries
@@ -119,6 +119,7 @@ local cfg = inicfg.load({
 		mine = false,
 		farm = false,
 		drugs = false,
+		rgb = 1.0, 1.0, 1.0,
 		rem = false,
 		fill = false,
 		mask = false,
@@ -172,9 +173,11 @@ local cfg = inicfg.load({
 		prsh2 = 0,
 		prsh3 = 56,
 		prsh4 = 1,
+		masktimer = false,
 		keyboard = false,
 		autoscreen = false,
 		autopay = false,
+		prconnect = false,
 		prsh5 = 0,
 		buttonjump = 0,
 		delay = 30,
@@ -184,6 +187,10 @@ local cfg = inicfg.load({
 		logincard = 123456,
 		fov = 101,
 		timestate = false,
+		autorun = false,
+		r = 0.00,
+		g = 0.00,
+		b = 0.00,
 	},
 	keyboard = {
 		kbact = false,
@@ -193,7 +200,7 @@ local cfg = inicfg.load({
 	},
 	keylogger = {
 		active = true,
-	}
+	},
 }, "OSHelper")
 
 -- variables
@@ -222,6 +229,7 @@ local farmhelper = imgui.ImBool(false)
 local fishhelper = imgui.ImBool(false)
 local kbset = imgui.ImBool(false)
 local keyboard = imgui.ImBool(cfg.settings.keyboard)
+local autorun = imgui.ImBool(cfg.settings.autorun)
 local kbact = imgui.ImBool(cfg.keyboard.kbact)
 local keyboard_pos = imgui.ImVec2(cfg.keyboard.posx, cfg.keyboard.posy)
 local job = imgui.ImBool(cfg.settings.job)
@@ -234,6 +242,9 @@ local drift = imgui.ImBool(cfg.settings.drift)
 local active = imgui.ImInt(cfg.settings.active)
 local edelay = imgui.ImInt(cfg.settings.edelay)
 local gunmode = imgui.ImInt(cfg.settings.gunmode)
+local masktimer = imgui.ImBool(cfg.settings.masktimer)
+local colortheme = imgui.ImFloat3(cfg.settings.r, cfg.settings.g, cfg.settings.b) -- colortheme
+--local colortheme = imgui.ImFloat3(0,0,0) -- colortheme
 local buttonjump = imgui.ImInt(cfg.settings.buttonjump)
 local bullet = imgui.ImInt(cfg.settings.bullet)
 local time = imgui.ImInt(cfg.settings.time)
@@ -263,6 +274,7 @@ local adbox2 = imgui.ImBool(cfg.settings.adbox2)
 local admsg1 = imgui.ImBuffer(''..cfg.settings.admsg1, 256)
 local admsg2 = imgui.ImBuffer(256)
 local fam = imgui.ImBool(cfg.settings.fam)
+local prconnect = imgui.ImBool(cfg.settings.prconnect)
 local al = imgui.ImBool(cfg.settings.al)
 local theme = imgui.ImInt(cfg.settings.theme)
 local cmds = imgui.ImBool(cfg.settings.cmds)
@@ -589,7 +601,7 @@ end
 function main()
     while not isSampAvailable() do wait(200) end
     if cfg.settings.theme == 0 then themeSettings(0) color = '{ff4747}'
-		elseif cfg.settings.theme == 1 then themeSettings(1) cfg.settings.color = '{00bd5c}'
+		elseif cfg.settings.theme == 1 then themeSettings(1) color = '{00bd5c}'
 		elseif cfg.settings.theme == 2 then themeSettings(2) color = '{007ABE}'
 		elseif cfg.settings.theme == 3 then themeSettings(3) color = '{00C091}'
 		elseif cfg.settings.theme == 4 then themeSettings(4) color = '{C27300}'
@@ -598,6 +610,7 @@ function main()
 		elseif cfg.settings.theme == 7 then themeSettings(7) color = '{BF0072}'
 		elseif cfg.settings.theme == 8 then themeSettings(8) color = '{755B46}'
 		elseif cfg.settings.theme == 9 then themeSettings(9) color = '{5E5E5E}'
+		elseif cfg.settings.theme == 10 then themeSettings(10)
 		end
 		if checkboxes.timestate.v then
 			createTextdraw()
@@ -626,7 +639,7 @@ function main()
     sampRegisterChatCommand('pr', function()
 		if prmanager.v then pronoroff = not pronoroff; msg(pronoroff and 'Реклама включена.' or 'Реклама выключена.') end
 		lua_thread.create(function()
-			if pronoroff and prmanager.v then piar() local delay = cfg.settings.delay * 1000 wait(delay) return true end 
+			if pronoroff and prmanager.v then piar() local delay = cfg.settings.delay * 1000 wait(delay) return true end
 		end)
 	end)
 	    sampRegisterChatCommand('fh', function(num)
@@ -683,6 +696,9 @@ function main()
 			else
 				msg('У вас не включена функция Job Helper.')  
 			end
+		end)
+		sampRegisterChatCommand("test", function()
+			print(cfg.settings.r, cfg.settings.g, cfg.settings.b)
 		end)
 		sampRegisterChatCommand("fish", function()
 			if checkboxes.job.v then
@@ -783,7 +799,7 @@ function main()
 				else
 					sampTextdrawDelete(1215)
 				end
-				if isCharOnFoot(playerPed) and isKeyDown(0xA0) then 
+				if autorun.v and isCharOnFoot(playerPed) and isKeyDown(0xA0) then 
 					wait(10)				
 					setGameKeyState(16, 0)
 				end
@@ -943,6 +959,13 @@ function onScriptTerminate(s)
 	end
 end
 
+function join_rgba(r, g, b, a)
+    local rgba = b  -- b
+    rgba = bit.bor(rgba, bit.lshift(g, 8))  -- g
+    rgba = bit.bor(rgba, bit.lshift(r, 16)) -- r
+    rgba = bit.bor(rgba, bit.lshift(a, 24)) -- a
+    return rgba
+end
 
 function showInputHelp()
 	while true do
@@ -962,46 +985,8 @@ function showInputHelp()
 			local success = ffi.C.GetKeyboardLayoutNameA(KeyboardLayoutName)
 			local errorCode = ffi.C.GetLocaleInfoA(tonumber(ffi.string(KeyboardLayoutName), 16), 0x00000002, LocalInfo, BuffSize)
 			local localName = ffi.string(LocalInfo)
-			if cfg.settings.theme == 0 then
-				local stringtext = string.format("{c7c7c7}ID: {ff4747}%d, {c7c7c7}Caps: {ff4747}%s, {c7c7c7}Lang: {ff4747}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 1 then
-				local stringtext = string.format("{c7c7c7}ID: {00bd5c}%d, {c7c7c7}Caps: {00bd5c}%s, {c7c7c7}Lang: {00bd5c}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 2 then
-				local stringtext = string.format("{c7c7c7}ID: {007ABE}%d, {c7c7c7}Caps: {007ABE}%s, {c7c7c7}Lang: {007ABE}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 3 then
-				local stringtext = string.format("{c7c7c7}ID: {00C091}%d, {c7c7c7}Caps: {00C091}%s, {c7c7c7}Lang: {00C091}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 4 then
-				local stringtext = string.format("{c7c7c7}ID: {C27300}%d, {c7c7c7}Caps: {C27300}%s, {c7c7c7}Lang: {C27300}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 5 then
-				local stringtext = string.format("{c7c7c7}ID: {5D00C0}%d, {c7c7c7}Caps: {5D00C0}%s, {c7c7c7}Lang: {5D00C0}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 6 then
-				local stringtext = string.format("{c7c7c7}ID: {8CBF00}%d, {c7c7c7}Caps: {8CBF00}%s, {c7c7c7}Lang: {8CBF00}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 7 then
-				local stringtext = string.format("{c7c7c7}ID: {BF0072}%d, {c7c7c7}Caps: {BF0072}%s, {c7c7c7}Lang: {BF0072}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 8 then
-				local stringtext = string.format("{c7c7c7}ID: {755B46}%d, {c7c7c7}Caps: {755B46}%s, {c7c7c7}Lang: {755B46}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
-			if cfg.settings.theme == 9 then
-				local stringtext = string.format("{c7c7c7}ID: {5E5E5E}%d, {c7c7c7}Caps: {5E5E5E}%s, {c7c7c7}Lang: {5E5E5E}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
-				renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
-			end
+			local stringtext = string.format("{c7c7c7}ID: {"..cfg.settings.xcolor.."}%d, {c7c7c7}Caps: {"..cfg.settings.xcolor.."}%s, {c7c7c7}Lang: {"..cfg.settings.xcolor.."}%s{ffffff}", pID, getStrByState(capsState), string.match(localName, "([^%(]*)"))
+			renderFontDrawText(inputHelpText, stringtext, fib2, fib, 0xD7FFFFFF)
 		end
 		wait(0)
 	end
@@ -1479,9 +1464,6 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 	    end			
 		end
 	end
-	if id == 211 and text:find('Энтони Каспаров продал 1 предмет Бандитский респект за 10 руб') then
-		msg('test')
-	end
 	if cardlogin.v and id == 782 then sampSendDialogResponse(782, 1, -1, logincard.v) end
 	if ztimerstatus.v then
 		if id == 0 and title:find('Внимание!') then
@@ -1519,7 +1501,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 			return false
 		end
 	end
-	if autoscreen.v and id == 10044 then
+	if autoscreen.v and id == 44 then
 			lua_thread.create(function() 
 				wait(400)
 				sampSendChat('/time')
@@ -1679,9 +1661,10 @@ function imgui.OnDrawFrame()
 	elseif cfg.settings.theme == 4 then themeSettings(4) cfg.settings.color = '{C27300}' cfg.settings.xcolor = 'C27300'
 	elseif cfg.settings.theme == 5 then themeSettings(5) cfg.settings.color = '{5D00C0}' cfg.settings.xcolor = '5D00C0'
 	elseif cfg.settings.theme == 6 then themeSettings(6) cfg.settings.color = '{8CBF00}' cfg.settings.xcolor = '8CBF00'
-	elseif cfg.settings.theme == 7 then themeSettings(7) cfg.settings.color = '{BF0072}'
+	elseif cfg.settings.theme == 7 then themeSettings(7) cfg.settings.color = '{BF0072}' cfg.settings.xcolor = 'BF0072'
 	elseif cfg.settings.theme == 8 then themeSettings(8) cfg.settings.color = '{755B46}' cfg.settings.xcolor = '755B46'
 	elseif cfg.settings.theme == 9 then themeSettings(9) cfg.settings.color = '{5E5E5E}' cfg.settings.xcolor = '5E5E5E'
+	elseif cfg.settings.theme == 10 then themeSettings(10)
 	end
     if window.v then
     		imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
@@ -1797,8 +1780,8 @@ function imgui.OnDrawFrame()
 					if imgui.InputTextWithHint(u8"##Чит Код", cfg.settings.cheatcode, cheatcode) then cfg.settings.cheatcode = cheatcode.v end
 				end
 				--if cheatcode.v == '' then cheatcode.v = 'oh' cfg.settings.cheatcode = 'oh' end
-				imgui.offset(u8'Цвет темы: ') 
-					if imgui.Combo(u8'##Тема', theme, {u8'Красный', u8'Зеленый', u8'Синий', u8'Салатовый', u8'Оранжевый', u8'Фиолетовый', u8'Токсичный', u8'Розовый', u8'Коричневая', u8'Серая',}, -1) then cfg.settings.theme = theme.v save()
+				imgui.offset(u8'Тема: ') 
+					if imgui.Combo(u8'##Тема', theme, {u8'Красный', u8'Зеленый', u8'Синий', u8'Салатовый', u8'Оранжевый', u8'Фиолетовый', u8'Токсичный', u8'Розовый', u8'Коричневая', u8'Серая', u8'Кастомизированная'}, -1) then cfg.settings.theme = theme.v save()
 						if cfg.settings.theme == 0 then themeSettings(0) color = '{ff4747}'
 						elseif cfg.settings.theme == 1 then themeSettings(1) color = '{00b052}'
 						elseif cfg.settings.theme == 2 then themeSettings(2) color = '{007ABE}'
@@ -1809,8 +1792,18 @@ function imgui.OnDrawFrame()
 						elseif cfg.settings.theme == 7 then themeSettings(7) color = '{BF0072}'
 						elseif cfg.settings.theme == 8 then themeSettings(8) color = '{755B46}'
 						elseif cfg.settings.theme == 9 then themeSettings(9) color = '{5E5E5E}'
-						--elseif cfg.settings.theme == 3 then themeSettings(4) color = '{ff4747}'
 					end
+				end
+				if theme.v == 10 then
+					imgui.Text(u8'	Цвет темы: ')
+			    imgui.SameLine()
+			    if imgui.ColorEdit3('##colortheme', colortheme, imgui.ColorEditFlags.NoInputs) then
+			       	color = join_rgba(colortheme.v[1] * 255, colortheme.v[2] * 255, colortheme.v[3] * 255, 0)
+					cfg.settings.r, cfg.settings.g, cfg.settings.b = colortheme.v[1], colortheme.v[2], colortheme.v[3]
+					cfg.settings.xcolor = ('%06X'):format(color)
+			        color = '{'..('%06X'):format(color)..'}'
+					cfg.settings.color = color
+    			end
 				end
 				if imgui.Checkbox(u8'Приветственное сообщение', checkboxes.hello) then cfg.settings.hello = checkboxes.hello.v end
 				imgui.SetCursorPosX(89)
@@ -1937,6 +1930,7 @@ function imgui.OnDrawFrame()
 					if imgui.InputTextWithHint(u8"##prstring", u8"/vr Работает БК Эдово №57!", stringmsg) then cfg.settings.stringmsg = stringmsg.v end
 				end
 				imgui.Separator()
+				if imgui.Checkbox(u8'Включение рекламы при заходе', prconnect) then cfg.settings.prconnect = prconnect.v end
 				imgui.Text(u8'Задержка: ')
 				imgui.SameLine()
 				imgui.PushItemWidth(40)
@@ -2047,6 +2041,8 @@ function character()
 						imgui.PopItemWidth()
 					end
 				end
+				if imgui.Checkbox(u8'Автоускорение', autorun) then cfg.settings.autorun = autorun.v end
+				imgui.TextQuestion(u8'При нажатии на кнопку бега, функция вас сильно ускоряет')
 				if imgui.Checkbox(u8'Еда', eat) then cfg.settings.eat = eat.v end
 				imgui.TextQuestion(u8'Использовать чипсы: ALT + 5\nНастройка автоеды доступна после включения главной функции')
 				if eat.v then
@@ -2392,8 +2388,8 @@ function themeSettings(theme)
 		colors[clr.SliderGrab]             = ImVec4(0.00, 0.48, 0.75, 1.00);
 		colors[clr.SliderGrabActive]       = ImVec4(0.00, 0.46, 0.71, 1.00);
 		colors[clr.Button]                 = ImVec4(0.00, 0.48, 0.75, 1.00);
-	  colors[clr.ButtonHovered]          = ImVec4(0.00, 0.71, 0.94, 1.00);
-	  colors[clr.ButtonActive]           = ImVec4(0.00, 0.46, 0.71, 1.00);
+		colors[clr.ButtonHovered]          = ImVec4(0.00, 0.71, 0.94, 1.00);
+		colors[clr.ButtonActive]           = ImVec4(0.00, 0.46, 0.71, 1.00);
 		colors[clr.Header]                 = ImVec4(0.00, 0.48, 0.75, 1.00);
 		colors[clr.HeaderHovered]          = ImVec4(0.00, 0.71, 0.94, 1.00);
 		colors[clr.HeaderActive]           = ImVec4(0.00, 0.46, 0.71, 1.00);
@@ -2707,8 +2703,8 @@ function themeSettings(theme)
 		colors[clr.SliderGrab]             = ImVec4(0.37, 0.37, 0.37, 1.00);
 		colors[clr.SliderGrabActive]       = ImVec4(0.33, 0.33, 0.33, 1.00);
 		colors[clr.Button]                 = ImVec4(0.37, 0.37, 0.37, 1.00);
-	  colors[clr.ButtonHovered]          = ImVec4(0.46, 0.46, 0.46, 1.00);
-	  colors[clr.ButtonActive]           = ImVec4(0.33, 0.33, 0.33, 1.00);
+		colors[clr.ButtonHovered]          = ImVec4(0.46, 0.46, 0.46, 1.00);
+		colors[clr.ButtonActive]           = ImVec4(0.33, 0.33, 0.33, 1.00);
 		colors[clr.Header]                 = ImVec4(0.37, 0.37, 0.37, 1.00);
 		colors[clr.HeaderHovered]          = ImVec4(0.46, 0.46, 0.46, 1.00);
 		colors[clr.HeaderActive]           = ImVec4(0.33, 0.33, 0.33, 1.00);
@@ -2724,9 +2720,53 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
+	elseif theme == 10 then -- Кастомная
+	  	local style = imgui.GetStyle()
+		local colors = style.Colors
+		local clr = imgui.Col
+		local ImVec4 = imgui.ImVec4
+		colors[clr.Text]                   = ImVec4(0.95, 0.96, 0.98, 1.00);
+		colors[clr.TextDisabled]           = ImVec4(0.29, 0.29, 0.29, 1.00);
+		colors[clr.WindowBg]               = ImVec4(0.14, 0.14, 0.14, 1.00);
+		colors[clr.ChildWindowBg]          = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.PopupBg]                = ImVec4(0.08, 0.08, 0.08, 0.94);
+		colors[clr.Border]                 = ImVec4(0.14, 0.14, 0.14, 1.00);
+		colors[clr.BorderShadow]           = ImVec4(1.00, 1.00, 1.00, 0.10);
+		colors[clr.FrameBg]                = ImVec4(0.22, 0.22, 0.22, 1.00);
+		colors[clr.FrameBgHovered]         = ImVec4(0.18, 0.18, 0.18, 1.00);
+		colors[clr.FrameBgActive]          = ImVec4(0.09, 0.12, 0.14, 1.00);
+		colors[clr.TitleBg]                = ImVec4(0.14, 0.14, 0.14, 0.81);
+		colors[clr.TitleBgActive]          = ImVec4(0.14, 0.14, 0.14, 1.00);
+		colors[clr.TitleBgCollapsed]       = ImVec4(0.00, 0.00, 0.00, 0.51);
+		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
+		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
+		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.CheckMark]              = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
+		colors[clr.SliderGrab]             = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
+		colors[clr.SliderGrabActive]       = ImVec4(colortheme.v[1] / (1/0.75), colortheme.v[2] / (1/0.75), colortheme.v[3] / (1/0.75), 1.00);
+		colors[clr.Button]                 = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
+		colors[clr.ButtonHovered]          = ImVec4(colortheme.v[1] / (1/2), colortheme.v[2] / (1/2), colortheme.v[3] / (1/2), 1.00);
+		colors[clr.ButtonActive]           = ImVec4(colortheme.v[1] / (1/0.75), colortheme.v[2] / (1/0.75), colortheme.v[3] / (1/0.75), 1.00);
+		colors[clr.Header]                 = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
+		colors[clr.HeaderHovered]          = ImVec4(colortheme.v[1] / (1/2), colortheme.v[2] / (1/2), colortheme.v[3] / (1/2), 1.00);
+		colors[clr.HeaderActive]           = ImVec4(colortheme.v[1] / (1/0.75), colortheme.v[2] / (1/0.75), colortheme.v[3] / (1/0.75), 1.00);
+		colors[clr.ResizeGrip]             = ImVec4(1.00, 0.28, 0.28, 1.00);
+		colors[clr.ResizeGripHovered]      = ImVec4(1.00, 0.39, 0.39, 1.00);
+		colors[clr.ResizeGripActive]       = ImVec4(1.00, 0.19, 0.19, 1.00);
+		colors[clr.CloseButton]            = ImVec4(0.40, 0.39, 0.38, 0.16);
+		colors[clr.CloseButtonHovered]     = ImVec4(0.40, 0.39, 0.38, 0.39);
+		colors[clr.CloseButtonActive]      = ImVec4(0.40, 0.39, 0.38, 1.00);
+		colors[clr.PlotLines]              = ImVec4(0.61, 0.61, 0.61, 1.00);
+		colors[clr.PlotLinesHovered]       = ImVec4(1.00, 0.43, 0.35, 1.00);
+		colors[clr.PlotHistogram]          = ImVec4(1.00, 0.21, 0.21, 1.00);
+		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
+		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
+		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
 	end
 end
-
 
 themeSettings()
 
