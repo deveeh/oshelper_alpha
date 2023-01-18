@@ -1,6 +1,6 @@
 -- script
 script_name('OS Helper')
-script_version('1.4.2 pre-alpha')
+script_version('1.4.3 pre-alpha')
 script_author('deveeh')
 
 -- libraries
@@ -223,6 +223,9 @@ checkboxes = {
 	rem = imgui.ImBool(cfg.settings.rem),
 	fill = imgui.ImBool(cfg.settings.fill),
 	timestate = imgui.ImBool(cfg.settings.timestate),
+	eat = imgui.ImBool(cfg.settings.eat),
+	autoprize = imgui.ImBool(cfg.settings.autoprize),
+	drift = imgui.ImBool(cfg.settings.drift),
 }
 local window = imgui.ImBool(false)
 local musicmenu = imgui.ImBool(false)
@@ -243,9 +246,6 @@ local job = imgui.ImBool(cfg.settings.job)
 local color = cfg.settings.color
 local textcolor = '{c7c7c7}'
 local capcha = imgui.ImBool(false)
-local eat = imgui.ImBool(cfg.settings.eat)
-local autoprize = imgui.ImBool(cfg.settings.autoprize)
-local drift = imgui.ImBool(cfg.settings.drift)
 local active = imgui.ImInt(cfg.settings.active)
 local timestamp__fontsize = imgui.ImInt(cfg.timestamp.fontsize)
 local edelay = imgui.ImInt(cfg.settings.edelay)
@@ -652,7 +652,6 @@ function main()
 				sampSendChat('/findihouse '..num) 
 			end
 		end)
-		sampRegisterChatCommand('sc', cmd_sc)
 	    sampRegisterChatCommand("skin", nsc_cmd)
 		sampRegisterChatCommand('fbiz', function(num) 
 			if cmds.v then 
@@ -762,55 +761,31 @@ function main()
 		sampRegisterChatCommand('cc', function() 
 			clearchat() 
 		end)
-		sampRegisterChatCommand('camhack', function()
-			if flymode == 0 then
-					--setPlayerControl(playerchar, false)
-					displayRadar(false)
-					displayHud(false)	    
-					local posX, posY, posZ = getCharCoordinates(playerPed)
-					angZ = getCharHeading(playerPed)
-					angZ = angZ * -1.0
-					setFixedCameraPosition(posX, posY, posZ, 0.0, 0.0, 0.0)
-					angY = 0.0
-					--freezeCharPosition(playerPed, false)
-					--setCharProofs(playerPed, 1, 1, 1, 1, 1)
-					--setCharCollision(playerPed, false)
-					lockPlayerControl(true)
-					flymode = 1
-					--	sampSendChat('/anim 35')
-				end
-		end)
-    local ip, port = sampGetCurrentServerAddress()
-	if ip == '185.169.134.163' and port == 7777 then serverName = 'Rodina RP | Central District'
-	elseif ip == '185.169.134.60' and port == 7777 then serverName = 'Rodina RP | Southern District'
-	elseif ip == '185.169.134.62' and port == 7777 then serverName = 'Rodina RP | Northern District'
-	elseif ip == '185.169.134.108' and port == 7777 then serverName = 'Rodina RP | Eastern District'
-	end
+	font = renderCreateFont("Arial", cfg.timestamp.fontsize, 5)
     while true do
         wait(0)
         imgui.Process = window.v or prmwindow.v or cwindow.v or musicmenu.v or bushelper.v or minehelper.v or farmhelper.v or fishhelper.v or calcactive or keyboard.v or kbset.v
         imgui.ShowCursor = kbset.v
         if not keyboard.v then kbact.v = false end if keyboard.v then kbact.v = true end
         timech = timech + 1
-		font = renderCreateFont("Arial", cfg.timestamp.fontsize, 5)
 		if checkboxes.timestate.v  or moving then
-            if moving then
-                sampToggleCursor(true)
-                local x, y = getCursorPos()
-                cfg.timestamp.x = x
-                cfg.timestamp.y = y
-                if isKeyJustPressed(0x01) then
-                    moving = false
-                    sampToggleCursor(false)
-                    inicfg.save(cfg, 'OSHelper.ini')
-                end
-            end
-            local date_table = os.date("*t")
-            local hour, minute, second = date_table.hour, date_table.min, date_table.sec
-            local result = string.format("%02d:%02d:%02d", hour, minute, second)
+			if moving then
+				sampToggleCursor(true)
+				local x, y = getCursorPos()
+				cfg.timestamp.x = x
+				cfg.timestamp.y = y
+				if isKeyJustPressed(0x01) then
+					moving = false
+					sampToggleCursor(false)
+					inicfg.save(cfg, 'OSHelper.ini')
+				end
+			end
+			local date_table = os.date("*t")
+			local hour, minute, second = date_table.hour, date_table.min, date_table.sec
+			local result = string.format("%02d:%02d:%02d", hour, minute, second)
 
-            renderFontDrawText(font, result, cfg.timestamp.x, cfg.timestamp.y, "0xFF"..cfg.settings.xcolor)
-        end
+			renderFontDrawText(font, result, cfg.timestamp.x, cfg.timestamp.y, "0xFF"..cfg.settings.xcolor)
+		end
         if fisheye.v then
 	        if isCurrentCharWeapon(PLAYER_PED, 34) and isKeyDown(2) then
 							cameraSetLerpFov(fov.v, fov.v, 1000, 1)
@@ -854,11 +829,11 @@ function main()
         if timeweather.v then
       		setTimeOfDay(time.v, 0)
       		forceWeatherNow(weather.v)
-    		end
+    	end
         inicfg.save(cfg, 'OSHelper.ini')
         if cfg.settings.cheatcode == '' then cfg.settings.cheatcode = 'oh' cheatcode = imgui.ImBuffer(tostring(cfg.settings.cheatcode), 256) end
     		if active.v == 1 and testCheat(cfg.settings.cheatcode) then window.v = not window.v end
-    		if drift.v then
+    		if checkboxes.drift.v then
 	    		if isCharInAnyCar(playerPed) then 
 						local car = storeCarCharIsInNoSave(playerPed)
 						local speed = getCarSpeed(car)
@@ -898,7 +873,7 @@ function main()
 	     		hpcheck = hpmed.v + 1
 	     		if hpplayer < hpcheck then send('/usemed') wait(1000) end
 	     	end
-	     	if eat.v and isKeyDown(0x12) and wasKeyPressed(0x35) then send('/eat') end
+	     	if checkboxes.eat.v and isKeyDown(0x12) and wasKeyPressed(0x35) then send('/eat') end
 	     	if checkboxes.armor.v and isKeyDown(0x12) and wasKeyPressed(0x31) then
 	     		local armourlvl = sampGetPlayerArmor(id)
 	     		if armourlvl > 89 then 
@@ -1487,7 +1462,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				return false
 		end
 	end
-	if autoprize.v then
+	if checkboxes.autoprize.v then
 		if id == 519 and text:find('»» Следующая страница') then 
 			sampSendDialogResponse(519, 1, 1, "")
 		elseif id == 519 and not text:find('»» Следующая страница') then 
@@ -1654,7 +1629,7 @@ end
 
 function eatchips()
 		lua_thread.create(function()
-			if eat.v and edelay.v > 0 then
+			if checkboxes.eat.v and edelay.v > 0 then
 				local eatdelay = cfg.settings.edelay * 60000 send('/eat') wait(eatdelay) return true
 			end
 		end)
@@ -1756,7 +1731,7 @@ function imgui.OnDrawFrame()
 				end
 				if imgui.Checkbox(u8'Автооплата налогов', checkboxes.autopay) then cfg.settings.autopay = checkboxes.autopay.v end
 				imgui.TextQuestion(u8'Не работает с новыми диалогами')
-				if imgui.Checkbox(u8'Автосбор ежедневных призов', autoprize) then cfg.settings.autoprize = autoprize.v end
+				if imgui.Checkbox(u8'Автосбор ежедневных призов', checkboxes.autoprize) then cfg.settings.autoprize = checkboxes.autoprize.v end
 				imgui.TextQuestion(u8'Автоматически собирает призы в /dw_prizes')
 				if imgui.Checkbox(u8'Mining Helper', mininghelper) then cfg.settings.mininghelper = mininghelper.v end
 				imgui.TextQuestion(u8'Сбор прибыли, охлаждение видеокарт в пару кликов')
@@ -1772,7 +1747,8 @@ function imgui.OnDrawFrame()
 						elseif timestamp__fontsize.v > 25 then
 							timestamp__fontsize.v = 25 
 						end 
-						cfg.timestamp.fontsize = timestamp__fontsize.v 
+						cfg.timestamp.fontsize = timestamp__fontsize.v
+						font = renderCreateFont("Arial", cfg.timestamp.fontsize, 5) 
 					end
 					imgui.PopItemWidth()
 					imgui.Text(u8'	Изменить расположение:')
@@ -2068,10 +2044,10 @@ function character()
 					end
 				end
 				if imgui.Checkbox(u8'Автоускорение', autorun) then cfg.settings.autorun = autorun.v end
-				imgui.TextQuestion(u8'При нажатии на кнопку бега, функция вас сильно ускоряет')
-				if imgui.Checkbox(u8'Еда', eat) then cfg.settings.eat = eat.v end
+				imgui.TextQuestion(u8'При нажатии на кнопку бега, персонаж переходит на быстрый бег')
+				if imgui.Checkbox(u8'Еда', checkboxes.eat) then cfg.settings.eat = checkboxes.eat.v end
 				imgui.TextQuestion(u8'Использовать чипсы: ALT + 5\nНастройка автоеды доступна после включения главной функции')
-				if eat.v then
+				if checkboxes.eat.v then
 					imgui.Text(u8'	Задержка:')
 					imgui.SameLine()
 					imgui.PushItemWidth(75)
@@ -2088,11 +2064,11 @@ function character()
 				if imgui.Checkbox(u8'Авто-кликер', balloon) then cfg.settings.balloon = balloon.v end
 				imgui.TextQuestion(u8'Активация: ALT + C (зажатие)\nКликер для сборки шара/выкапывания клада и т.п.')
 				if imgui.Checkbox(u8'Бесконечный бег', infrun) then cfg.settings.infrun = infrun.v end
-				imgui.TextQuestion(u8'Активация: автоматическая\nНе позволяет устать персонажу от бега')
+				imgui.TextQuestion(u8'Активация автоматическая\nНе позволяет устать персонажу от бега')
 				if imgui.Checkbox(u8'Skin Changer', vskin) then cfg.settings.vskin = vskin.v end 
 				imgui.TextQuestion(u8'Активация: /skin [ID]\nСкин виден только вам\nТак же, мы вам не советуем злоупотреблять 92, 99 и 320+ скинами,\nтак как они дают преимущество в беге')
 				if imgui.Checkbox(u8'Крафт оружия', gunmaker) then cfg.settings.gunmaker = gunmaker.v end
-				imgui.TextQuestion(u8'Скрафтить оружие: /cg')
+				imgui.TextQuestion(u8'Активация: /cg')
 				if gunmaker.v then
 					imgui.Text(u8'	Оружие: ')
 					imgui.SameLine()
@@ -2119,7 +2095,7 @@ function transport()
         		imgui.PopFont()
         		imgui.Separator()
 				if imgui.Checkbox(u8'AutoCar', autolock) then cfg.settings.autolock = autolock.v end
-				imgui.TextQuestion(u8'Активация: сесть в машину\nАвтоматическое закрытие дверей + включение двигателя')
+				imgui.TextQuestion(u8'Активация: сесть в машину\nАвтоматическое закрытие дверей, пристегивание и включение двигателя')
 				if imgui.Checkbox(u8'Открыть/Закрыть двери', lock) then cfg.settings.lock = lock.v end
 				imgui.TextQuestion(u8'Активация: L, K (аренд. т/с)')
 				if imgui.Checkbox(u8'Ремкомплект', checkboxes.rem) then cfg.settings.rem = checkboxes.rem.v end
@@ -2132,7 +2108,7 @@ function transport()
 				imgui.TextQuestion(u8'Открыть шлагбаум: O')
 				if imgui.Checkbox(u8'+W moto/bike', plusw) then cfg.settings.plusw = plusw.v end
 				imgui.TextQuestion(u8'Использование: W (зажатие)\nКликер для велосипедов и мотоциклов')
-				if imgui.Checkbox(u8'Дрифт', drift) then cfg.settings.drift = drift.v end
+				if imgui.Checkbox(u8'Дрифт', checkboxes.drift) then cfg.settings.drift = checkboxes.drift.v end
 				imgui.TextQuestion(u8'Активация: LSHIFT (зажатие)\nУправление заносом')
 				--[[if imgui.Checkbox(u8'Цвета покраски', ballooncolor) then balloncolor = not balloncolor if ballooncolor then 
 						imgui.Image(imgbc, imgui.ImVec2(200, 200)) 
@@ -2317,8 +2293,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(1.00, 0.28, 0.28, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(1.00, 0.28, 0.28, 1.00);
@@ -2362,8 +2338,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.00, 0.69, 0.33, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.00, 0.69, 0.33, 1.00);
@@ -2407,8 +2383,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.00, 0.48, 0.75, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.00, 0.48, 0.75, 1.00);
@@ -2452,8 +2428,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.00, 0.75, 0.57, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.00, 0.75, 0.57, 1.00);
@@ -2497,8 +2473,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.76, 0.45, 0.00, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.76, 0.45, 0.00, 1.00);
@@ -2542,8 +2518,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.37, 0.00, 0.75, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.37, 0.00, 0.75, 1.00);
@@ -2587,8 +2563,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.55, 0.75, 0.00, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.55, 0.75, 0.00, 1.00);
@@ -2632,8 +2608,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.75, 0.000, 0.45, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.75, 0.000, 0.45, 1.00);
@@ -2677,8 +2653,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.46, 0.36, 0.28, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.46, 0.36, 0.28, 1.00);
@@ -2722,8 +2698,8 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(0.37, 0.37, 0.37, 1.00);
 		colors[clr.SliderGrab]             = ImVec4(0.37, 0.37, 0.37, 1.00);
@@ -2767,9 +2743,9 @@ function themeSettings(theme)
 		colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
 		colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-		colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
-		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
+		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
+		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
+		colors[clr.ComboBg]                = ImVec4(0.02, 0.02, 0.02, 0.39);
 		colors[clr.CheckMark]              = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
 		colors[clr.SliderGrab]             = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
 		colors[clr.SliderGrabActive]       = ImVec4(colortheme.v[1] / (1/0.75), colortheme.v[2] / (1/0.75), colortheme.v[3] / (1/0.75), 1.00);
