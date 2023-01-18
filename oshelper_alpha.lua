@@ -1,6 +1,6 @@
 -- script
 script_name('OS Helper')
-script_version('1.4.1 alpha')
+script_version('1.4.2 pre-alpha')
 script_author('deveeh')
 
 -- libraries
@@ -185,12 +185,17 @@ local cfg = inicfg.load({
 		fisheye = false,
 		autoprize = false,
 		logincard = 123456,
-		fov = 101,
+		fov = 100,
 		timestate = false,
 		autorun = false,
 		r = 0.00,
 		g = 0.00,
 		b = 0.00,
+	},
+	timestamp = {
+        x = 300,
+        y = 300,
+        fontsize = 12,
 	},
 	keyboard = {
 		kbact = false,
@@ -224,8 +229,10 @@ local musicmenu = imgui.ImBool(false)
 local prmwindow = imgui.ImBool(false)
 local cwindow = imgui.ImBool(false)
 local bushelper = imgui.ImBool(false)
+local imw_reconnecting = imgui.ImBool(false)
 local minehelper = imgui.ImBool(false)
 local farmhelper = imgui.ImBool(false)
+local moving = false
 local fishhelper = imgui.ImBool(false)
 local kbset = imgui.ImBool(false)
 local keyboard = imgui.ImBool(cfg.settings.keyboard)
@@ -240,6 +247,7 @@ local eat = imgui.ImBool(cfg.settings.eat)
 local autoprize = imgui.ImBool(cfg.settings.autoprize)
 local drift = imgui.ImBool(cfg.settings.drift)
 local active = imgui.ImInt(cfg.settings.active)
+local timestamp__fontsize = imgui.ImInt(cfg.timestamp.fontsize)
 local edelay = imgui.ImInt(cfg.settings.edelay)
 local gunmode = imgui.ImInt(cfg.settings.gunmode)
 local masktimer = imgui.ImBool(cfg.settings.masktimer)
@@ -612,9 +620,6 @@ function main()
 		elseif cfg.settings.theme == 9 then themeSettings(9) color = '{5E5E5E}'
 		elseif cfg.settings.theme == 10 then themeSettings(10)
 		end
-		if checkboxes.timestate.v then
-			createTextdraw()
-		end
     if checkboxes.hello.v then
 			if active.v == 0 then
 				msg('Авторы: '..color..'deveeh'..textcolor..' и '..color..'casparo'..textcolor..'. Команда активации: '..color..'/oshelper') 
@@ -647,6 +652,7 @@ function main()
 				sampSendChat('/findihouse '..num) 
 			end
 		end)
+		sampRegisterChatCommand('sc', cmd_sc)
 	    sampRegisterChatCommand("skin", nsc_cmd)
 		sampRegisterChatCommand('fbiz', function(num) 
 			if cmds.v then 
@@ -697,9 +703,6 @@ function main()
 				msg('У вас не включена функция Job Helper.')  
 			end
 		end)
-		sampRegisterChatCommand("test", function()
-			print(cfg.settings.r, cfg.settings.g, cfg.settings.b)
-		end)
 		sampRegisterChatCommand("fish", function()
 			if checkboxes.job.v then
 				if checkboxes.fish.v then 
@@ -749,10 +752,6 @@ function main()
 		sampRegisterChatCommand('prm', function() 
 			prmwindow.v = not prmwindow.v  
 		end)
-		sampRegisterChatCommand('nickname', function() 
-			sss = sampGetPlayerNickname(id)
-			msg(sss)
-		end)
 		sampRegisterChatCommand('osmusic', function()
 			if osplayer.v then 
 				musicmenu.v = not musicmenu.v 
@@ -793,16 +792,25 @@ function main()
         imgui.ShowCursor = kbset.v
         if not keyboard.v then kbact.v = false end if keyboard.v then kbact.v = true end
         timech = timech + 1
-        if checkboxes.timestate.v then
-        	createTextdraw()
-					sampTextdrawSetString(1215, os.date('%H:%M:%S'))
-				else
-					sampTextdrawDelete(1215)
-				end
-				if autorun.v and isCharOnFoot(playerPed) and isKeyDown(0xA0) then 
-					wait(10)				
-					setGameKeyState(16, 0)
-				end
+		font = renderCreateFont("Arial", cfg.timestamp.fontsize, 5)
+		if checkboxes.timestate.v  or moving then
+            if moving then
+                sampToggleCursor(true)
+                local x, y = getCursorPos()
+                cfg.timestamp.x = x
+                cfg.timestamp.y = y
+                if isKeyJustPressed(0x01) then
+                    moving = false
+                    sampToggleCursor(false)
+                    inicfg.save(cfg, 'OSHelper.ini')
+                end
+            end
+            local date_table = os.date("*t")
+            local hour, minute, second = date_table.hour, date_table.min, date_table.sec
+            local result = string.format("%02d:%02d:%02d", hour, minute, second)
+
+            renderFontDrawText(font, result, cfg.timestamp.x, cfg.timestamp.y, "0xFF"..cfg.settings.xcolor)
+        end
         if fisheye.v then
 	        if isCurrentCharWeapon(PLAYER_PED, 34) and isKeyDown(2) then
 							cameraSetLerpFov(fov.v, fov.v, 1000, 1)
@@ -1754,6 +1762,24 @@ function imgui.OnDrawFrame()
 				imgui.TextQuestion(u8'Сбор прибыли, охлаждение видеокарт в пару кликов')
 				if imgui.Checkbox(u8'Графическая клавиатура', keyboard) then cfg.settings.keyboard = keyboard.v end
 				if imgui.Checkbox(u8'Время на экране', checkboxes.timestate) then cfg.settings.timestate = checkboxes.timestate.v end
+				if checkboxes.timestate then
+					imgui.Text(u8'	Размер шрифта:')
+					imgui.SameLine()
+					imgui.PushItemWidth(72.5)  
+					if imgui.InputInt('##Fontsize', timestamp__fontsize, 1, 1) then 
+						if timestamp__fontsize.v < 1 then 
+							timestamp__fontsize.v = 1 
+						elseif timestamp__fontsize.v > 25 then
+							timestamp__fontsize.v = 25 
+						end 
+						cfg.timestamp.fontsize = timestamp__fontsize.v 
+					end
+					imgui.PopItemWidth()
+					imgui.Text(u8'	Изменить расположение:')
+					imgui.SameLine()
+					if imgui.Button('X', imgui.ImVec2(17.5, 20)) then moving = true end
+					imgui.TextQuestion(u8'Для установки позиции нажмите ЛКМ')
+				end
 				if imgui.Checkbox(u8'Autoscreen', autoscreen) then cfg.settings.autoscreen = autoscreen.v end
 				imgui.TextQuestion(u8'При появлении диалога с предложением, \nавтоматически пишет /time и нажимает F8')
 				--[[if imgui.Checkbox(u8'Тренировка капчи', capcha) then cfg.settings.capcha = capcha.v end
