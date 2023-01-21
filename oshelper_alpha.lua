@@ -21,7 +21,7 @@
 
 -- script
 script_name('OS Helper')
-script_version('1.5.1 alpha')
+script_version('1.5.2 alpha')
 script_author('OS Production') 
 
 -- libraries
@@ -980,8 +980,8 @@ function imgui.OnDrawFrame()
         imgui.SetNextWindowSize(imgui.ImVec2(300, 400), imgui.Cond.FirstUseEver)
     	imgui.Begin('PR Manager (OS '..thisScript().version..')##prmenu', frames.prmwindow, imgui.WindowFlags.NoResize)
         	if checkboxes.prmanager.v then
-	        	if imgui.Checkbox(u8'Реклама в VIP CHAT (/vr)', vr1) then cfg.settings.vr1 = vr1.v end
-				if vr1.v then
+	        	if imgui.Checkbox(u8'Реклама в VIP CHAT (/vr)', checkboxes.vr1) then cfg.settings.vr1 = checkboxes.vr1.v end
+				if checkboxes.vr1.v then
 					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
 					if imgui.InputTextWithHint(u8"##vr1", u8"Работает БК Лыткарино №56!", buffers.vrmsg1) then cfg.settings.vrmsg1 = buffers.vrmsg1.v end
@@ -1638,7 +1638,7 @@ end
 
 function piar()
 	lua_thread.create(function()
-			if pronoroff and vr1.v then
+			if pronoroff and checkboxes.vr1.v then
 				send('/vr '..u8:decode(buffers.vrmsg1.v))
 			end
 			wait(1000)
