@@ -6,10 +6,10 @@
 		убрал лишнее из cfg и массивов ,
 	
 	Tech.task on release 1.5 :
-		перенос инфо-панели [ successfully! ] ,
-		перенос онлайн счетчика [ none ] ,
-		перенести Car HP [ none ] , 
-		colors frame [ 50/100 ] , 
+		перенос инфо-панели [ successfully ] ,
+		перенос онлайн счетчика [ successfully ] ,
+		перенести Car HP [ successfully ] , 
+		colors frame [ successfully ] , 
 		создать инициализацию во фреймах [ wait ] ,
 		записать картинки в память хелпера [ wait ] , 
 		добавить бинды [ ? ] ,
@@ -21,7 +21,7 @@
 
 -- script
 script_name('OS Helper')
-script_version('1.5.2 alpha')
+script_version('1.5.3 alpha')
 script_author('OS Production') 
 
 -- libraries
@@ -35,6 +35,7 @@ local inicfg =		require 'inicfg'
 local sampev = 		require 'lib.samp.events'
 local ffi = 		require ("ffi")
 local mem = 		require "memory"
+local render =		require 'lib.rodinarender'
 local as_action = 	require ('moonloader').audiostream_state
 local fa_glyph_ranges = imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
 local encoding = 	require 'encoding'
@@ -143,6 +144,7 @@ local cfg = inicfg.load({
 		r = 0.00,
 		g = 0.00,
 		b = 0.00,
+		carhp = false,
 	},
 	keyboard = {
 		kbact = false,
@@ -166,6 +168,23 @@ local cfg = inicfg.load({
 		armouract = true,
 		hpact = true,
 	},
+	onlinepanel = {
+		activepanel = false,
+		x = 0,
+		y = 0,
+		sesOnline = true,
+		sesAfk = true,
+		sesFull = true,
+		dayOnline = true,
+  		dayAfk = true,
+  		dayFull = true,
+	},
+	onDay = {
+		today = os.date("%a"),
+		online = 0,
+		afk = 0,
+		full = 0
+	},
 }, "OSHelper")
 
 -- variables
@@ -181,6 +200,7 @@ local frames = {
 	kbset = imgui.ImBool(false),
 	colors = imgui.ImBool(false),
 	mypanel = imgui.ImBool(false),
+	onlinepanel = imgui.ImBool(false),
 }
 local checkboxes = {
 	job = imgui.ImBool(cfg.settings.job),
@@ -251,6 +271,8 @@ local checkboxes = {
 	skinact = imgui.ImBool(cfg.infopanel.skinact),
 	armouract = imgui.ImBool(cfg.infopanel.armouract),
 	hpact = imgui.ImBool(cfg.infopanel.hpact),
+	carhp = imgui.ImBool(cfg.settings.carhp),
+	activepanel = imgui.ImBool(cfg.onlinepanel.activepanel),
 }
 local ints = {
 	theme = imgui.ImInt(cfg.settings.theme),
@@ -292,8 +314,16 @@ local day_date = {
     'Пятница',
     'Суббота'
 }
+local RenderText = create()
+		RenderText.pos({ x = 50, y = 50 })
+		RenderText.font('')
+		RenderText.color('FFFFFF')
+		RenderText.opacity(30)
+		RenderText.size(11)
+font = renderCreateFont('Bold', 30, 5)
 
 local posX, posY = cfg.infopanel.x, cfg.infopanel.y
+local onlineposX, onlineposY = cfg.onlinepanel.x, cfg.onlinepanel.y
 local color = cfg.settings.color
 local textcolor = '{c7c7c7}'
 local moving = false
@@ -326,9 +356,22 @@ local automining_getbtc = 0
 local automining_startall = 0
 local automining_fillall = 0
 
+local sesOnline = imgui.ImInt(0)
+local sesAfk = imgui.ImInt(0)
+local sesFull = imgui.ImInt(0)
+local dayFull = imgui.ImInt(cfg.onDay.full)
+local weekFull = imgui.ImInt(cfg.onWeek.full)
+local Radio = {
+	['sesOnline'] = cfg.onlinepanel.sesOnline,
+	['sesAfk'] = cfg.onlinepanel.sesAfk,
+	['sesFull'] = cfg.onlinepanel.sesFull,
+	['dayOnline'] = cfg.onlinepanel.dayOnline,
+	['dayAfk'] = cfg.onlinepanel.dayAfk,
+	['dayFull'] = cfg.onlinepanel.dayFull,
+}
+
 local resX, resY = getScreenResolution()
 local numbermus = 1
-local antiafkmode = imgui.ImBool(false)
 local radiobutton = imgui.ImInt(0)
 local BuffSize = 32
 local KeyboardLayoutName = ffi.new("char[?]", BuffSize)
@@ -365,6 +408,15 @@ chars = {
 -- main
 function main()
     while not isSampAvailable() do wait(200) end
+	if cfg.onDay.today ~= os.date("%a") then 
+     	cfg.onDay.today = os.date("%a")
+		cfg.onDay.online = 0
+		cfg.onDay.full = 0
+		cfg.onDay.afk = 0
+		dayFull.v = 0
+		inicfg.save(cfg, "OSHelper.ini")
+	end
+	lua_thread.create(time)
     if cfg.settings.theme == 0 then themeSettings(0) color = '{ff4747}'
 		elseif cfg.settings.theme == 1 then themeSettings(1) color = '{00bd5c}'
 		elseif cfg.settings.theme == 2 then themeSettings(2) color = '{007ABE}'
@@ -376,7 +428,7 @@ function main()
 		elseif cfg.settings.theme == 8 then themeSettings(8) color = '{755B46}'
 		elseif cfg.settings.theme == 9 then themeSettings(9) color = '{5E5E5E}'
 		elseif cfg.settings.theme == 10 then themeSettings(10)
-		end
+	end
     if checkboxes.hello.v then
 			if ints.active.v == 0 then
 				msg('Разработано '..color..'OS Production. '..textcolor..'Команда активации: '..color..'/oshelper') 
@@ -539,6 +591,9 @@ while true do
 		elseif frames.mypanel.v then
 			imgui.ShowCursor = false
 			imgui.Process = true
+		elseif frames.onlinepanel.v then
+			imgui.ShowCursor = false
+			imgui.Process = true
 		elseif frames.prmwindow.v then
 			imgui.ShowCursor = true
 			imgui.Process = true	
@@ -577,6 +632,11 @@ while true do
 			frames.mypanel.v = true
 		else
 			frames.mypanel.v = false
+		end
+		if cfg.onlinepanel.activepanel == true then
+			frames.onlinepanel.v = true
+		else
+			frames.onlinepanel.v = false
 		end
         if not checkboxes.keyboard.v then checkboxes.kbact.v = false end if checkboxes.keyboard.v then checkboxes.kbact.v = true end
         timech = timech + 1
@@ -714,7 +774,30 @@ while true do
 				wait(1000)
 			end
 		end
-			
+		-- [ HP CAR ] --
+		if checkboxes.carhp.v then
+			if isPlayerPlaying(PLAYER_PED) then
+				RenderText.show()
+				local PED_3d_x, PED_3d_y, PED_3d_z = getCharCoordinates(PLAYER_PED)
+				local PED_2d_x, PED_2d_y = convert3DCoordsToScreen(PED_3d_x, PED_3d_y, PED_3d_z)
+				if isCharInAnyCar(PLAYER_PED) then -- HPCAR
+					RenderText.rpos.x = tonumber(PED_2d_x - 23)
+					RenderText.rpos.y = tonumber(PED_2d_y)				
+					local carHundle = storeCarCharIsInNoSave(playerPed)
+					HPCar = textcolor..'HP машины: '..color.. getCarHealth(carHundle)
+				else
+					HPCar = ''		
+					RenderText.rpos.x = tonumber(PED_2d_x - 23)
+					RenderText.rpos.y = tonumber(PED_2d_y - 45)		
+				end
+				RenderText.text((HPCar)) -- REDNDER		
+			else
+				RenderText.hide()
+			end 
+		else
+			RenderText.hide()
+		end
+		-- [ HP CAR ] --
 	end -- cancel
 end
 
@@ -939,7 +1022,7 @@ function imgui.OnDrawFrame()
 					imgui.TextQuestion(u8'Активация: /fish\nПодсчёт заработка на работе рыболова')
 				end
 				if imgui.Checkbox(u8'Infoboard', checkboxes.doppanel) then cfg.infopanel.doppanel = checkboxes.doppanel.v end
-				if checkboxes.doppanel.v then 
+					if checkboxes.doppanel.v then 
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать никнейм и ID", checkboxes.nickact) then cfg.infopanel.nickact = checkboxes.nickact.v end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать ping", checkboxes.pingact) then cfg.infopanel.pingact = checkboxes.pingact.v end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать дату", checkboxes.daysact) then cfg.infopanel.daysact = checkboxes.daysact.v end
@@ -952,7 +1035,7 @@ function imgui.OnDrawFrame()
 							checkCursor = true
 							frames.window.v = false
 							sampSetCursorMode(4)
-							msg('Нажмите ПРОБЕЛ для сохранения позиции.')
+							msg('Нажмите ЛКМ для сохранения позиции.')
 							while checkCursor do
 								local cX, cY = getCursorPos()
 									posX, posY = cX, cY
@@ -962,6 +1045,45 @@ function imgui.OnDrawFrame()
 										frames.window.v = true
 										checkCursor = false
 										showCursor(false, false)
+										if inicfg.save(cfg, "OSHelper.ini") then msg('Позиция панели сохранена!') end
+									end
+								wait(0)
+							end
+						end)
+					end
+					imgui.SameLine()
+					imgui.Text(u8'Изменить расположение')
+				end
+				if imgui.Checkbox(u8'Onlineboard', checkboxes.activepanel) then cfg.onlinepanel.activepanel = checkboxes.activepanel.v end
+				if checkboxes.activepanel.v then 
+				--[[	imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать онлайн за сессию", checkboxes.sesOnline) then cfg.onlinepanel.sesOnline = checkboxes.sesOnline end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать афк за сессию", checkboxes.sesAfk) then cfg.onlinepanel.sesAfk = checkboxes.sesAfk end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать полную сессию", checkboxes.sesFull) then cfg.onlinepanel.sesFull = checkboxes.sesFull end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать онлайн за день", checkboxes.dayOnline) then cfg.onlinepanel.dayOnline = checkboxes.dayOnline end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать афк за день", checkboxes.dayAfk) then cfg.onlinepanel.dayAfk = checkboxes.dayAfk end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать полный онлайн за день", checkboxes.dayFull) then cfg.onlinepanel.dayFull = checkboxes.dayFull end]]
+					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'Онлайн сессию', Radio['sesOnline']) then Radio['sesOnline'] = not Radio['sesOnline']; cfg.onlinepanel.sesOnline = Radio['sesOnline'] end
+					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'AFK за сессию', Radio['sesAfk']) then Radio['sesAfk'] = not Radio['sesAfk']; cfg.onlinepanel.sesAfk = Radio['sesAfk'] end
+					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'Общий за сессию', Radio['sesFull']) then Radio['sesFull'] = not Radio['sesFull']; cfg.onlinepanel.sesFull = Radio['sesFull'] end
+					imgui.Text('	') imgui.SameLine()	if imgui.RadioButton(u8'Онлайн за день', Radio['dayOnline']) then Radio['dayOnline'] = not Radio['dayOnline']; cfg.onlinepanel.dayOnline = Radio['dayOnline'] end
+					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'АФК за день', Radio['dayAfk']) then Radio['dayAfk'] = not Radio['dayAfk']; cfg.onlinepanel.dayAfk = Radio['dayAfk'] end
+					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'Общий за день', Radio['dayFull']) then Radio['dayFull'] = not Radio['dayFull']; cfg.onlinepanel.dayFull = Radio['dayFull'] end
+					imgui.Text('	') imgui.SameLine() if imgui.Button('X', imgui.ImVec2(20, 20)) then
+						lua_thread.create(function()
+							showCursor(true, true)
+							checkCursor = true
+							frames.window.v = false
+							sampSetCursorMode(4)
+							msg('Нажмите ЛКМ для сохранения позиции.')
+							while checkCursor do
+								local ocX, ocY = getCursorPos()
+									onlineposX, onlineposY = ocX, ocY
+									if isKeyDown(32) then
+										sampSetCursorMode(0)
+										cfg.onlinepanel.x, cfg.onlinepanel.y = onlineposX, onlineposY
+											renderWindow[0] = true
+											checkCursor = false
+											showCursor(false, false)
 										if inicfg.save(cfg, "OSHelper.ini") then msg('Позиция панели сохранена!') end
 									end
 								wait(0)
@@ -1040,7 +1162,7 @@ function imgui.OnDrawFrame()
 		imgui.SetNextWindowPos(imgui.ImVec2(posX, posY), imgui.Cond.Always)
 		imgui.Begin("##infopanel", frames.mypanel.v, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar)
 			if cfg.infopanel.nickact then
-				imgui.Text(u8(nick)) imgui.SameLine()
+				imgui.Text(u8( nick)) imgui.SameLine()
 				imgui.Text("["..id.."]")
 			end
 			if cfg.infopanel.pingact then
@@ -1057,6 +1179,33 @@ function imgui.OnDrawFrame()
 			end
 			if cfg.infopanel.hpact then
 				imgui.Text(u8"HP: "..health)
+			end
+		imgui.End()
+	end
+	if frames.onlinepanel.v then
+		imgui.SetNextWindowPos(imgui.ImVec2(onlineposX, onlineposY), imgui.Cond.Always)
+		imgui.Begin("##onlpanel", frames.mypanel.v, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar)
+			if sampGetGamestate() ~= 3 then 
+				imgui.CenterText(u8"Подключение: "..get_clock(connectingTime))
+			else	
+				if cfg.onlinepanel.sesOnline then
+					imgui.Text(u8"Сессия (чистая): "..get_clock(sesOnline.v))
+				end
+				if cfg.onlinepanel.sesAfk then
+					imgui.Text(u8"AFK за сессию: "..get_clock(sesAfk.v))
+				end
+				if cfg.onlinepanel.sesFull then
+					imgui.Text(u8"Сессия (полная): "..get_clock(sesFull.v))
+				end
+				if cfg.onlinepanel.dayOnline then 
+					imgui.Text(u8"За день (чистый): "..get_clock(cfg.onDay.online)) 
+				end
+				if cfg.onlinepanel.dayAfk then 
+					imgui.Text(u8"AFK за день: "..get_clock(cfg.onDay.afk))
+				end
+				if cfg.onlinepanel.dayFull then 
+					imgui.Text(u8"Онлайн за день: "..get_clock(cfg.onDay.full)) 
+				end
 			end
 		imgui.End()
 	end
@@ -1224,6 +1373,8 @@ function transport()
 	imgui.TextQuestion(u8'Использование: W (зажатие)\nКликер для велосипедов и мотоциклов')
 	if imgui.Checkbox(u8'Дрифт', checkboxes.drift) then cfg.settings.drift = checkboxes.drift.v end
 	imgui.TextQuestion(u8'Активация: LSHIFT (зажатие)\nУправление заносом')
+	if imgui.Checkbox(u8"Отображать HP на машинах", checkboxes.carhp) then cfg.settings.carhp = checkboxes.carhp.v end 
+	imgui.TextQuestion(u8'Отображает колличество ХП на вашем т/c')
 end
 
 function osmusic()
@@ -1364,6 +1515,58 @@ function jobhelperimgui()
 end
 
 -- functions
+
+-- [ online ] --
+function time()
+	startTime = os.time() -- "Точка отсчёта"
+    connectingTime = 0
+    while true do
+        wait(1000)
+        nowTime = os.date("%H:%M:%S", os.time())
+        if sampGetGamestate() == 3 then 								-- Игровой статус равен "Подключён к серверу" (Что бы онлайн считало только, когда, мы подключены к серверу)
+	        sesOnline.v = sesOnline.v + 1 								-- Онлайн за сессию без учёта АФК
+	        sesFull.v = os.time() - startTime 							-- Общий онлайн за сессию
+	        sesAfk.v = sesFull.v - sesOnline.v							-- АФК за сессию
+
+	        cfg.onDay.online = cfg.onDay.online + 1 					-- Онлайн за день без учёта АФК
+	        cfg.onDay.full = dayFull.v + sesFull.v 						-- Общий онлайн за день
+	        cfg.onDay.afk = cfg.onDay.full - cfg.onDay.online			-- АФК за день
+
+	        cfg.onWeek.online = cfg.onWeek.online + 1 					-- Онлайн за неделю без учёта АФК
+	        cfg.onWeek.full = weekFull.v + sesFull.v 					-- Общий онлайн за неделю
+	        cfg.onWeek.afk = cfg.onWeek.full - cfg.onWeek.online		-- АФК за неделю
+
+            local today = tonumber(os.date('%w', os.time()))
+            cfg.myWeekOnline[today] = cfg.onDay.full		
+            connectingTime = 0
+	    else
+            connectingTime = connectingTime + 1                        -- Вермя подключения к серверу
+	    	startTime = startTime + 1									-- Смещение начала отсчета таймеров
+	    end
+    end
+end
+
+function get_clock(time)
+    local timezone_offset = 86400 - os.date('%H', 0) * 3600
+    if tonumber(time) >= 86400 then onDay = true else onDay = false end
+    return os.date((onDay and math.floor(time / 86400)..'д ' or '')..'%H:%M:%S', time + timezone_offset)
+end
+
+function number_week() -- получение номера недели в году
+    local current_time = os.date'*t'
+    local start_year = os.time{ year = current_time.year, day = 1, month = 1 }
+    local week_day = ( os.date('%w', start_year) - 1 ) % 7
+    return math.ceil((current_time.yday + week_day) / 7)
+end
+
+function getStrDate(unixTime)
+    local day = tonumber(os.date('%d', unixTime))
+    local month = tMonths[tonumber(os.date('%m', unixTime))]
+    local weekday = tWeekdays[tonumber(os.date('%w', unixTime))]
+    return string.format('%s, %s %s', weekday, day, month)
+end
+-- [ online ] --
+
 function msg(arg)
 	sampAddChatMessage(color..'[OS Helper] {FFFFFF}'..textcolor..arg..'', -1)
 end
