@@ -746,7 +746,6 @@ function imgui.OnDrawFrame()
 				elseif imgui.Selectable(fa.ICON_FA_WINDOW_MAXIMIZE..u8' Работа с диалогами', menu == 5) then menu = 5
 				elseif imgui.Selectable(fa.ICON_FA_TASKS..u8' Дополнения', menu == 9) then menu = 9
 				elseif imgui.Selectable(fa.ICON_FA_COG..u8' Настройки', menu == 6) then menu = 6
-				elseif imgui.Selectable(fa.ICON_FA_INFO..u8' Панель' , menu == 10) then menu = 10
 				elseif imgui.Selectable(fa.ICON_FA_INFO_CIRCLE..u8' Информация', menu == 7) then menu = 7
 				end
 				imgui.SetCursorPosY(265)
@@ -973,46 +972,6 @@ function imgui.OnDrawFrame()
 					imgui.SameLine()
 					imgui.Text(u8'Изменить расположение')
 				end
-			end
-			if menu == 10 then 	
-			imgui.CenterText(fa.ICON_FA_INFO.. u8"  Инфо-панель  "..fa.ICON_FA_INFO) 
-				imgui.Text(u8"Статус: ") imgui.SameLine()
-					if imgui.Checkbox(u8'##Статус: ', checkboxes.doppanel) then
-						cfg.infopanel.doppanel = checkboxes.doppanel.v
-						inicfg.save(cfg, "OSHelper.ini")
-					end
-				imgui.SameLine()
-				imgui.Text(u8(cfg.infopanel.doppanel and 'Активна' or 'Неактивна'))
-					if imgui.Button(u8'Позиция', imgui.ImVec2(200, 25)) then
-						lua_thread.create(function ()
-							showCursor(true, true)
-							checkCursor = true
-							frames.window.v = false
-							sampSetCursorMode(4)
-							msg('Нажмите ПРОБЕЛ для сохранения позиции.')
-							while checkCursor do
-								local cX, cY = getCursorPos()
-									posX, posY = cX, cY
-									if isKeyDown(32) then
-										sampSetCursorMode(0)
-										cfg.infopanel.x, cfg.infopanel.y = posX, posY
-										frames.window.v = true
-										checkCursor = false
-										showCursor(false, false)
-										if inicfg.save(cfg, "OSHelper.ini") then msg('Позиция панели сохранена!') end
-									end
-								wait(0)
-							end
-						end)
-					end
-				if imgui.Checkbox(u8"Отображать ник и id", checkboxes.nickact) then cfg.infopanel.nickact = checkboxes.nickact.v end
-				if imgui.Checkbox(u8"Отображать время", checkboxes.timeact) then cfg.infopanel.timeact = checkboxes.timeact.v end
-				if imgui.Checkbox(u8"Отображать день недели", checkboxes.daysact) then cfg.infopanel.daysact = checkboxes.daysact.v end
-				if imgui.Checkbox(u8"Отображать количество кадров", checkboxes.fpsact) then cfg.infopanel.fpsact = checkboxes.fpsact.v end
-				if imgui.Checkbox(u8"Отображать пинг", checkboxes.pingact) then cfg.infopanel.pingact = checkboxes.pingact.v end
-				if imgui.Checkbox(u8"Отображать ID своего скина", checkboxes.skinact) then cfg.infopanel.skinact = checkboxes.skinact.v end
-				if imgui.Checkbox(u8"Отображать целостность броника", checkboxes.armouract) then cfg.infopanel.armouract = checkboxes.armouract.v end
-				if imgui.Checkbox(u8"Отображать колличество ХП", checkboxes.hpact) then cfg.infopanel.hpact = checkboxes.hpact.v end
 			end
 			imgui.EndChild()
 		imgui.End()
