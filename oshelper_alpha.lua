@@ -1,21 +1,22 @@
 --[[ 
 	Fixes :	
-		Р—Р°РїРёСЃР°Р» РІСЃРµ С„СѓРЅРєС†РёРё РІ РјР°СЃСЃРёРІС‹ ,
-		РІС‹СЃС‚Р°РІРёР» С‚Р°Р±СѓР»СЏС†РёСЋ ( РЅРµ РїРѕР»РЅРѕСЃС‚СЊСЋ,С‚СѓС‚ Р°С…СѓРµС‚СЊ РєР°Рє РјРЅРѕРіРѕ ) ,
-		РІСЃРµ С„СЂРµР№РјС‹ С‚РµРїРµСЂСЊ Р·Р°РїРёСЃС‹РІР°СЋС‚СЃСЏ РІ 'frames' ,
-		СѓР±СЂР°Р» Р»РёС€РЅРµРµ РёР· cfg Рё РјР°СЃСЃРёРІРѕРІ ,
+		Записал все функции в массивы ,
+		выставил табуляцию ( не полностью,тут ахуеть как много ) ,
+		все фреймы теперь записываются в 'frames' ,
+		убрал лишнее из cfg и массивов ,
 	
 	Tech.task on release 1.5 :
-		РїРµСЂРµРЅРѕСЃ РёРЅС„Рѕ-РїР°РЅРµР»Рё [ successfully! ] ,
-		РїРµСЂРµРЅРѕСЃ РѕРЅР»Р°Р№РЅ СЃС‡РµС‚С‡РёРєР° [ none ] ,
-		РїРµСЂРµРЅРµСЃС‚Рё Car HP [ none ] , 
+		перенос инфо-панели [ successfully! ] ,
+		перенос онлайн счетчика [ none ] ,
+		перенести Car HP [ none ] , 
 		colors frame [ 50/100 ] , 
-		СЃРѕР·РґР°С‚СЊ РёРЅРёС†РёР°Р»РёР·Р°С†РёСЋ РІРѕ С„СЂРµР№РјР°С… [ wait ] ,
-		Р·Р°РїРёСЃР°С‚СЊ РєР°СЂС‚РёРЅРєРё РІ РїР°РјСЏС‚СЊ С…РµР»РїРµСЂР° [ wait ] , 
-		РґРѕР±Р°РІРёС‚СЊ Р±РёРЅРґС‹ [ ? ] ,
-		РѕРїС‚РёРјРёР·Р°С†РёСЏ РєРѕРґР° + Р±СѓСЃС‚ РїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚Рё [ 1/10  | ? ] ,
-		СЃСЂРµРґРЅРёРµ С†РµРЅС‹ РґР»СЏ Р¦Р  (by cosmo) [ none ] ,
-		СЃРµРїР°СЂР°С‚РѕСЂ РґРµРЅРµРі РґР»СЏ Р»Р°РІРєРё Р¦Р  [ none ] ,
+		создать инициализацию во фреймах [ wait ] ,
+		записать картинки в память хелпера [ wait ] , 
+		добавить бинды [ ? ] ,
+		оптимизация кода + буст производительности [ 1/10  | ? ] ,
+		средние цены для ЦР (by cosmo) [ none ] ,
+		сепаратор денег для лавки ЦР [ none ] ,
+		изменить перемещение инфоборда на ЛКМ [ wait ] ,
 ]]
 
 -- script
@@ -46,11 +47,11 @@ ffi.cdef[[
 	typedef unsigned long DWORD;
 	DWORD GetTickCount();
 ]]
-limit = 15 				 	-- РљРѕР»-РІРѕ СЃС‚СЂРѕРє Р»РѕРіР°
-col_default = 0xFFAAAAAA 	-- РѕР±С‹С‡РЅС‹Р№ С†РІРµС‚
-col_pressed = 0xFFFFFF 	-- С†РІРµС‚ РЅР°Р¶Р°С‚РёСЏ
-font_name = "Calibri"		-- РЁСЂРёС„С‚
-font_size = 13				-- Р Р°Р·РјРµСЂ
+limit = 15 				 	-- Кол-во строк лога
+col_default = 0xFFAAAAAA 	-- обычный цвет
+col_pressed = 0xFFFFFF 	-- цвет нажатия
+font_name = "Calibri"		-- Шрифт
+font_size = 13				-- Размер
 
 -- cfg
 local direct = 'moonloader\\config\\OSHelper.ini'
@@ -138,16 +139,10 @@ local cfg = inicfg.load({
 		autoprize = false,
 		logincard = 123456,
 		fov = 100,
-		timestate = false,
 		autorun = false,
 		r = 0.00,
 		g = 0.00,
 		b = 0.00,
-	},
-	timestamp = {
-        x = 300,
-        y = 300,
-        fontsize = 12,
 	},
 	keyboard = {
 		kbact = false,
@@ -200,7 +195,6 @@ local checkboxes = {
 	drugs = imgui.ImBool(cfg.settings.drugs),
 	rem = imgui.ImBool(cfg.settings.rem),
 	fill = imgui.ImBool(cfg.settings.fill),
-	timestate = imgui.ImBool(cfg.settings.timestate),
 	eat = imgui.ImBool(cfg.settings.eat),
 	autoprize = imgui.ImBool(cfg.settings.autoprize),
 	drift = imgui.ImBool(cfg.settings.drift),
@@ -273,7 +267,6 @@ local ints = {
 	time = imgui.ImInt(cfg.settings.time),
 	weather = imgui.ImInt(cfg.settings.weather),
 	active = imgui.ImInt(cfg.settings.active),
-	timestamp__fontsize = imgui.ImInt(cfg.timestamp.fontsize),
 	edelay = imgui.ImInt(cfg.settings.edelay),
 	gunmode = imgui.ImInt(cfg.settings.gunmode),
 
@@ -291,13 +284,13 @@ local buffers = {
 }
 -- [ Others ] --
 local day_date = {
-    [0] = 'Р’РѕСЃРєСЂРµСЃРµРЅСЊРµ',
-    'РџРѕРЅРµРґРµР»СЊРЅРёРє',
-    'Р’С‚РѕСЂРЅРёРє',
-    'РЎСЂРµРґР°',
-    'Р§РµС‚РІРµСЂРі',
-    'РџСЏС‚РЅРёС†Р°',
-    'РЎСѓР±Р±РѕС‚Р°'
+    [0] = 'Воскресенье',
+    'Понедельник',
+    'Вторник',
+    'Среда',
+    'Четверг',
+    'Пятница',
+    'Суббота'
 }
 
 local posX, posY = cfg.infopanel.x, cfg.infopanel.y
@@ -341,7 +334,7 @@ local BuffSize = 32
 local KeyboardLayoutName = ffi.new("char[?]", BuffSize)
 local LocalInfo = ffi.new("char[?]", BuffSize)
 
-local oxladtime = 224 -- Р§Р°СЃС‹, РЅР° СЃРєРѕР»СЊРєРѕ С…РІР°С‚РёС‚ РѕС…Р»Р°РґР°
+local oxladtime = 224 -- Часы, на сколько хватит охлада
 
 local INFO = { 
     0.029999,
@@ -354,7 +347,7 @@ local INFO = {
 	0.239999,
 	0.27,
 	0.3
-} -- РџСЂРёР±С‹Р»СЊ РІ С‡Р°СЃ РїРѕ Р»РІР»
+} -- Прибыль в час по лвл
 
 local dtext = {}
 
@@ -362,11 +355,11 @@ local dtext = {}
 bike = {[481] = true, [509] = true, [510] = true, [10433] = true, [10444] = true, [10445] = true, [10446] = true, [10431] = true, [10430] = true}
 moto = {[448] = true, [461] = true, [462] = true, [463] = true, [521] = true, [522] = true, [523] = true, [581] = true, [586] = true, [1823] = true, [1913] = true, [1912] = true, [1947] = true, [1948] = true, [1949] = true, [1950] = true, [1951] = true, [1982] = true, [2006] = true}
 chars = {
-	["Р№"] = "q", ["С†"] = "w", ["Сѓ"] = "e", ["Рє"] = "r", ["Рµ"] = "t", ["РЅ"] = "y", ["Рі"] = "u", ["С€"] = "i", ["С‰"] = "o", ["Р·"] = "p", ["С…"] = "[", ["СЉ"] = "]", ["С„"] = "a",
-	["С‹"] = "s", ["РІ"] = "d", ["Р°"] = "f", ["Рї"] = "g", ["СЂ"] = "h", ["Рѕ"] = "j", ["Р»"] = "k", ["Рґ"] = "l", ["Р¶"] = ";", ["СЌ"] = "'", ["СЏ"] = "z", ["С‡"] = "x", ["СЃ"] = "c", ["Рј"] = "v",
-	["Рё"] = "b", ["С‚"] = "n", ["СЊ"] = "m", ["Р±"] = ",", ["СЋ"] = ".", ["Р™"] = "Q", ["Р¦"] = "W", ["РЈ"] = "E", ["Рљ"] = "R", ["Р•"] = "T", ["Рќ"] = "Y", ["Р“"] = "U", ["РЁ"] = "I",
-	["Р©"] = "O", ["Р—"] = "P", ["РҐ"] = "{", ["РЄ"] = "}", ["Р¤"] = "A", ["Р«"] = "S", ["Р’"] = "D", ["Рђ"] = "F", ["Рџ"] = "G", ["Р "] = "H", ["Рћ"] = "J", ["Р›"] = "K", ["Р”"] = "L",
-	["Р–"] = ":", ["Р­"] = "\"", ["РЇ"] = "Z", ["Р§"] = "X", ["РЎ"] = "C", ["Рњ"] = "V", ["Р"] = "B", ["Рў"] = "N", ["Р¬"] = "M", ["Р‘"] = "<", ["Р®"] = ">"
+	["й"] = "q", ["ц"] = "w", ["у"] = "e", ["к"] = "r", ["е"] = "t", ["н"] = "y", ["г"] = "u", ["ш"] = "i", ["щ"] = "o", ["з"] = "p", ["х"] = "[", ["ъ"] = "]", ["ф"] = "a",
+	["ы"] = "s", ["в"] = "d", ["а"] = "f", ["п"] = "g", ["р"] = "h", ["о"] = "j", ["л"] = "k", ["д"] = "l", ["ж"] = ";", ["э"] = "'", ["я"] = "z", ["ч"] = "x", ["с"] = "c", ["м"] = "v",
+	["и"] = "b", ["т"] = "n", ["ь"] = "m", ["б"] = ",", ["ю"] = ".", ["Й"] = "Q", ["Ц"] = "W", ["У"] = "E", ["К"] = "R", ["Е"] = "T", ["Н"] = "Y", ["Г"] = "U", ["Ш"] = "I",
+	["Щ"] = "O", ["З"] = "P", ["Х"] = "{", ["Ъ"] = "}", ["Ф"] = "A", ["Ы"] = "S", ["В"] = "D", ["А"] = "F", ["П"] = "G", ["Р"] = "H", ["О"] = "J", ["Л"] = "K", ["Д"] = "L",
+	["Ж"] = ":", ["Э"] = "\"", ["Я"] = "Z", ["Ч"] = "X", ["С"] = "C", ["М"] = "V", ["И"] = "B", ["Т"] = "N", ["Ь"] = "M", ["Б"] = "<", ["Ю"] = ">"
 }
 
 -- main
@@ -386,14 +379,14 @@ function main()
 		end
     if checkboxes.hello.v then
 			if ints.active.v == 0 then
-				msg('РђРІС‚РѕСЂС‹: '..color..'deveeh'..textcolor..' , '..color..'casparo'..textcolor..' Рё '..color..'STANLEY'..textcolor..'. РљРѕРјР°РЅРґР° Р°РєС‚РёРІР°С†РёРё: '..color..'/oshelper') 
+				msg('Разработано '..color..'OS Production. '..textcolor..'Команда активации: '..color..'/oshelper') 
 			end
 			if ints.active.v == 1 then
-				msg('РђРІС‚РѕСЂС‹: '..color..'deveeh'..textcolor..' , '..color..'casparo'..textcolor..' Рё '..color..'STANLEY'..textcolor..'. Р§РёС‚-РєРѕРґ: '..color..cfg.settings.cheatcode) 
+				msg('Разработано '..color..'OS Production. '..textcolor..'. Чит-код: '..color..cfg.settings.cheatcode) 
 			end
 		end
     _, id = sampGetPlayerIdByCharHandle(PLAYER_PED)
-    if not doesFileExist(getWorkingDirectory()..'\\config\\OSHelper.ini') then inicfg.save(cfg, 'OSHelper.ini') msg('РљРѕРЅС„РёРіСѓСЂР°С†РёРѕРЅРЅС‹Р№ С„Р°Р№Р» OSHelper.ini РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕ Р·Р°РіСЂСѓР¶РµРЅ') end
+    if not doesFileExist(getWorkingDirectory()..'\\config\\OSHelper.ini') then inicfg.save(cfg, 'OSHelper.ini') msg('Конфигурационный файл OSHelper.ini загружен') end
     if not doesDirectoryExist('moonloader/OS Helper') then createDirectory('moonloader/OS Helper') end
     if not doesDirectoryExist('moonloader/OS Helper/OS Music') then createDirectory('moonloader/OS Helper/OS Music') end
     inputHelpText = renderCreateFont("Arial", 9, FCR_BORDER + FCR_BOLD)
@@ -401,11 +394,8 @@ function main()
 	lua_thread.create(showInputHelp)
     imgui.Process = false
     frames.window.v = false  --show window
-		if autoupdate_loaded and enable_autoupdate and Update then
-			pcall(Update.check, Update.json_url, Update.prefix, Update.url)
-		end
 		sampRegisterChatCommand('pr', function()
-		if checkboxes.prmanager.v then pronoroff = not pronoroff; msg(pronoroff and 'Р РµРєР»Р°РјР° РІРєР»СЋС‡РµРЅР°.' or 'Р РµРєР»Р°РјР° РІС‹РєР»СЋС‡РµРЅР°.') end
+		if checkboxes.prmanager.v then pronoroff = not pronoroff; msg(pronoroff and 'Реклама включена.' or 'Реклама выключена.') end
 			lua_thread.create(function()
 				if pronoroff and checkboxes.prmanager.v then piar() local delay = cfg.settings.delay * 1000 wait(delay) return true end
 			end)
@@ -440,9 +430,9 @@ function main()
 			if checkboxes.cmds.v then 
 			    if arg:find('(%d+) (%d+)') then
 			        arg1, arg2 = arg:match('(.+) (.+)')
-			        sampSendChat('/showbizinfo '..arg1..' '..arg2) -- 2+ Р°СЂРіСѓРјРµРЅС‚Р°
+			        sampSendChat('/showbizinfo '..arg1..' '..arg2) -- 2+ аргумента
 			    else
-			        msg('/fin [id РёРіСЂРѕРєР°] [id Р±РёР·РЅРµСЃР°]', -1)
+			        msg('/fin [id игрока] [id бизнеса]', -1)
 			    end
 			end
 		end)
@@ -450,7 +440,7 @@ function main()
 			if ints.active.v == 0 then 
 				frames.window.v = not frames.window.v
 			else
-				msg('РЈ РІР°СЃ РІРєР»СЋС‡РµРЅР° Р°РєС‚РёРІР°С†РёСЏ С‡РµСЂРµР· С‡РёС‚-РєРѕРґ ('..cfg.settings.cheatcode..')') 
+				msg('У вас включена активация через чит-код ('..cfg.settings.cheatcode..')') 
 			end 
 		end)
 		sampRegisterChatCommand("colors", function()
@@ -462,10 +452,10 @@ function main()
 				if checkboxes.bus.v then 
 					frames.bushelper.v = not frames.bushelper.v
 				else
-					msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Bus Helper.')  
+					msg('У вас не включена функция Bus Helper.')  
 				end
 			else
-				msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Job Helper.')  
+				msg('У вас не включена функция Job Helper.')  
 			end
 		end)
 		sampRegisterChatCommand("fish", function()
@@ -473,10 +463,10 @@ function main()
 				if checkboxes.fish.v then 
 					frames.fishhelper.v = not frames.fishhelper.v
 				else
-					msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Fish Helper.')  
+					msg('У вас не включена функция Fish Helper.')  
 				end
 			else
-				msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Job Helper.')  
+				msg('У вас не включена функция Job Helper.')  
 			end
 		end)
 		sampRegisterChatCommand("mine", function()
@@ -484,10 +474,10 @@ function main()
 				if checkboxes.mine.v then 
 					frames.minehelper.v = not frames.minehelper.v
 				else
-					msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Mine Helper.')  
+					msg('У вас не включена функция Mine Helper.')  
 				end
 			else
-				msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Job Helper.')  
+				msg('У вас не включена функция Job Helper.')  
 			end
 		end)
 		sampRegisterChatCommand("farm", function()
@@ -495,10 +485,10 @@ function main()
 				if checkboxes.farm.v then 
 					frames.farmhelper.v = not frames.farmhelper.v
 				else
-					msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Farm Helper.')  
+					msg('У вас не включена функция Farm Helper.')  
 				end
 			else
-				msg('РЈ РІР°СЃ РЅРµ РІРєР»СЋС‡РµРЅР° С„СѓРЅРєС†РёСЏ Job Helper.')  
+				msg('У вас не включена функция Job Helper.')  
 			end 
 		end)
 		sampRegisterChatCommand('cg', function() 
@@ -511,7 +501,7 @@ function main()
 					send('/sellgun '..id..' shotgun '..cfg.settings.bullet)
 				end
 			else
-				msg('РЎРЅР°С‡Р°Р»Р° РЅСѓР¶РЅРѕ РІРєР»СЋС‡РёС‚СЊ С„СѓРЅРєС†РёСЋ РєСЂР°С„С‚Р° РѕСЂСѓР¶РёСЏ.')
+				msg('Сначала нужно включить функцию крафта оружия.')
 			end 
 		end)
 		sampRegisterChatCommand('prm', function() 
@@ -521,24 +511,23 @@ function main()
 			if checkboxes.osplayer.v then 
 				frames.musicmenu.v = not frames.musicmenu.v 
 			else
-				msg('РЎРЅР°С‡Р°Р»Р° РІРєР»СЋС‡РёС‚Рµ OS Music РІ РіР»Р°РІРЅРѕРј РјРµРЅСЋ.')
+				msg('Сначала включите OS Music в главном меню.')
 			end
 		end)
 		sampRegisterChatCommand('cc', function() 
 			clearchat() 
 		end)
-	font = renderCreateFont("Arial", cfg.timestamp.fontsize, 5)
 while true do
     wait(0)
 		-----------------------------------------------------------------------------------
-		_, id = sampGetPlayerIdByCharHandle(PLAYER_PED) -- РїРѕР»СѓС‡РµРЅРёРµ СЃРІРѕРµРіРѕ id
-		nick = sampGetPlayerNickname(id) -- РїРѕР»СѓС‡РµРЅРёРµ РЅРёРєР°
-		ping = sampGetPlayerPing(id) -- РїРѕР»СѓС‡РµРЅРёРµ РїРёРЅРіР°
-		lvl = sampGetPlayerScore(id) -- РїРѕР»СѓС‡РµРЅРёРµ СѓСЂРѕРІРЅСЏ
-		fps = ("%.0f"):format(mem.getfloat(0xB7CB50, true)) -- РїРѕР»СѓС‡РµРЅРёРµ С„РїСЃ
-		skinid = getCharModel(PLAYER_PED) -- РїРѕР»СѓС‡Р°РµРЅРёРµ СЃРєРёРЅР°
-        health = getCharHealth(PLAYER_PED) -- РїРѕР»СѓС‡РµРЅРёРµ С…Рї
-        armour = getCharArmour(PLAYER_PED) -- РїРѕР»СѓС‡РµРЅРёРµ Р±СЂРѕРЅРёРєР°
+		_, id = sampGetPlayerIdByCharHandle(PLAYER_PED) -- получение своего id
+		nick = sampGetPlayerNickname(id) -- получение ника
+		ping = sampGetPlayerPing(id) -- получение пинга
+		lvl = sampGetPlayerScore(id) -- получение уровня
+		fps = ("%.0f"):format(mem.getfloat(0xB7CB50, true)) -- получение фпс
+		skinid = getCharModel(PLAYER_PED) -- получаение скина
+        health = getCharHealth(PLAYER_PED) -- получение хп
+        armour = getCharArmour(PLAYER_PED) -- получение броника
 		nowTime = os.date("%H:%M:%S", os.time())
 		------------------------------------------------------------------------------------
 		if frames.window.v then
@@ -591,24 +580,6 @@ while true do
 		end
         if not checkboxes.keyboard.v then checkboxes.kbact.v = false end if checkboxes.keyboard.v then checkboxes.kbact.v = true end
         timech = timech + 1
-		if checkboxes.timestate.v  or moving then
-			if moving then
-				sampToggleCursor(true)
-				local x, y = getCursorPos()
-				cfg.timestamp.x = x
-				cfg.timestamp.y = y
-				if isKeyJustPressed(0x01) then
-					moving = false
-					sampToggleCursor(false)
-					inicfg.save(cfg, 'OSHelper.ini')
-				end
-			end
-			local date_table = os.date("*t")
-			local hour, minute, second = date_table.hour, date_table.min, date_table.sec
-			local result = string.format("%02d:%02d:%02d", hour, minute, second)
-
-			renderFontDrawText(font, result, cfg.timestamp.x, cfg.timestamp.y, "0xFF"..cfg.settings.xcolor)
-		end
         if checkboxes.fisheye.v then
 	        if isCurrentCharWeapon(PLAYER_PED, 34) and isKeyDown(2) then
 				cameraSetLerpFov(ints.fov.v, ints.fov.v, 1000, 1)
@@ -620,25 +591,25 @@ while true do
 	        calctext = sampGetChatInputText()
 	        if calctext:find('%d+') and calctext:find('[-+/*^%%]') and not calctext:find('%a+') and calctext ~= nil then
 	            calcactive, number = pcall(load('return '..calctext))
-	            result = 'Р РµР·СѓР»СЊС‚Р°С‚: '..number
+	            result = 'Результат: '..number
 	        end
 	        if calctext:find('%d+%%%*%d+') then
 	            number1, number2 = calctext:match('(%d+)%%%*(%d+)')
 	            number = number1*number2/100
 	            calcactive, number = pcall(load('return '..number))
-	            result = textcolor..'Р РµР·СѓР»СЊС‚Р°С‚: '..color..number
+	            result = textcolor..'Результат: '..color..number
 	        end
 	        if calctext:find('%d+%%%/%d+') then
 	            number1, number2 = calctext:match('(%d+)%%%/(%d+)')
 	            number = number2/number1*100
 	            calcactive, number = pcall(load('return '..number))
-	            result = 'Р РµР·СѓР»СЊС‚Р°С‚: '..number
+	            result = 'Результат: '..number
 	        end
 	        if calctext:find('%d+/%d+%%') then
 	            number1, number2 = calctext:match('(%d+)/(%d+)%%')
 	            number = number1*100/number2
 	            calcactive, number = pcall(load('return '..number))
-	            result = 'Р РµР·СѓР»СЊС‚Р°С‚: '..number..'%'
+	            result = 'Результат: '..number..'%'
 	        end
 	        if calctext == '' then
 	            calcactive = false
@@ -703,7 +674,7 @@ while true do
 	     	if checkboxes.armor.v and isKeyDown(0x12) and wasKeyPressed(0x31) then
 	     		local armourlvl = sampGetPlayerArmor(id)
 	     		if armourlvl > 89 then 
-		     		msg('РЈ РІР°СЃ '..armourlvl..' РїСЂРѕС†РµРЅС‚РѕРІ Р±СЂРѕРЅРё.')
+		     		msg('У вас '..armourlvl..' процентов брони.')
 		     	elseif armourlvl < 90 then
 		     		if armourlvl > 0 then
 			     		lua_thread.create(function() 
@@ -739,7 +710,7 @@ while true do
 			end	
 			if ztimer == 0 then
 				ztimer = ztimer - 1
-				msg('РњРµС‚РєР° РѕСЃРѕР±Рѕ РѕРїР°СЃРЅРѕРіРѕ РїСЂРµСЃС‚СѓРїРЅРёРєР° СЃР»РµС‚РµР»Р°, РјРѕР¶РµС‚Рµ Р±РµР·РѕРїР°СЃРЅРѕ РІС‹С…РѕРґРёС‚СЊ РёР· РёРіСЂС‹.')
+				msg('Метка особо опасного преступника слетела, можете безопасно выходить из игры.')
 				wait(1000)
 			end
 		end
@@ -767,29 +738,29 @@ function imgui.OnDrawFrame()
         imgui.SetNextWindowSize(imgui.ImVec2(500, 325), imgui.Cond.FirstUseEver)
         imgui.Begin('OS Helper v'..thisScript().version, frames.window, imgui.WindowFlags.NoResize)
 	        imgui.BeginChild("left", imgui.ImVec2(150, 290), true)
-				if imgui.Selectable(fa.ICON_FA_USER..u8' РџРµСЂСЃРѕРЅР°Р¶', menu == 1) then menu = 1
-				elseif imgui.Selectable(fa.ICON_FA_CAR..u8' РўСЂР°РЅСЃРїРѕСЂС‚', menu == 2) then menu = 2
-				elseif imgui.Selectable(fa.ICON_FA_USERS..u8' РЎРµРјСЊСЏ', menu == 3) then menu = 3
-				elseif imgui.Selectable(fa.ICON_FA_GLOBE..u8' РћРєСЂСѓР¶РµРЅРёРµ', menu == 8) then menu = 8
-				elseif imgui.Selectable(fa.ICON_FA_COMMENTS..u8' Р Р°Р±РѕС‚Р° СЃ С‡Р°С‚РѕРј', menu == 4) then menu = 4
-				elseif imgui.Selectable(fa.ICON_FA_WINDOW_MAXIMIZE..u8' Р Р°Р±РѕС‚Р° СЃ РґРёР°Р»РѕРіР°РјРё', menu == 5) then menu = 5
-				elseif imgui.Selectable(fa.ICON_FA_TASKS..u8' Р”РѕРїРѕР»РЅРµРЅРёСЏ', menu == 9) then menu = 9
-				elseif imgui.Selectable(fa.ICON_FA_COG..u8' РќР°СЃС‚СЂРѕР№РєРё', menu == 6) then menu = 6
-				elseif imgui.Selectable(fa.ICON_FA_INFO..u8' РџР°РЅРµР»СЊ' , menu == 10) then menu = 10
-				elseif imgui.Selectable(fa.ICON_FA_INFO_CIRCLE..u8' РРЅС„РѕСЂРјР°С†РёСЏ', menu == 7) then menu = 7
+				if imgui.Selectable(fa.ICON_FA_USER..u8' Персонаж', menu == 1) then menu = 1
+				elseif imgui.Selectable(fa.ICON_FA_CAR..u8' Транспорт', menu == 2) then menu = 2
+				elseif imgui.Selectable(fa.ICON_FA_USERS..u8' Семья', menu == 3) then menu = 3
+				elseif imgui.Selectable(fa.ICON_FA_GLOBE..u8' Окружение', menu == 8) then menu = 8
+				elseif imgui.Selectable(fa.ICON_FA_COMMENTS..u8' Работа с чатом', menu == 4) then menu = 4
+				elseif imgui.Selectable(fa.ICON_FA_WINDOW_MAXIMIZE..u8' Работа с диалогами', menu == 5) then menu = 5
+				elseif imgui.Selectable(fa.ICON_FA_TASKS..u8' Дополнения', menu == 9) then menu = 9
+				elseif imgui.Selectable(fa.ICON_FA_COG..u8' Настройки', menu == 6) then menu = 6
+				elseif imgui.Selectable(fa.ICON_FA_INFO..u8' Панель' , menu == 10) then menu = 10
+				elseif imgui.Selectable(fa.ICON_FA_INFO_CIRCLE..u8' Информация', menu == 7) then menu = 7
 				end
 				imgui.SetCursorPosY(265)
 				lua_thread.create(function()
 					if updateversion == thisScript().version then
-			        	if imgui.Button(u8'РЎРѕС…СЂР°РЅРёС‚СЊ', imgui.ImVec2(135, 20)) then
+			        	if imgui.Button(u8'Сохранить', imgui.ImVec2(135, 20)) then
 			        		save()
-							msg('Р’СЃРµ РЅР°СЃС‚СЂРѕР№РєРё СЃРѕС…СЂР°РЅРµРЅС‹.')
+							msg('Все настройки сохранены.')
 			        	end
 					elseif updateversion ~= thisScript().version then
-						if imgui.Button(u8'РћР±РЅРѕРІРёС‚СЊ', imgui.ImVec2(135, 20)) then
+						if imgui.Button(u8'Обновить', imgui.ImVec2(135, 20)) then
 							imgui.ShowCursor = false
 							imgui.Process = false
-							autoupdate("https://github.com/deveeh/oshelper_alpha/blob/master/update.json", '['..string.upper(thisScript().name)..']: ', "")
+							autoupdate("https://raw.githubusercontent.com/deveeh/oshelper_alpha/master/update.json", '['..string.upper(thisScript().name)..']: ', "")
 						end
 					end
 				end)
@@ -804,26 +775,26 @@ function imgui.OnDrawFrame()
 			end
 			if menu == 3 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'РЎРµРјСЊСЏ')
+        			imgui.CenterText(u8'Семья')
         		imgui.PopFont()
 				imgui.Separator()
-				if imgui.Checkbox(u8'РњРµРЅСЋ СЃРµРјСЊРё', checkboxes.fmenu) then cfg.settings.fmenu = checkboxes.fmenu.v end
-				imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: ALT + F')
-				if imgui.Checkbox(u8'РРЅРІР°Р№С‚ РІ СЃРµРјСЊСЋ', checkboxes.finv) then cfg.settings.finv = checkboxes.finv.v end
-				imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: F + 1')
+				if imgui.Checkbox(u8'Меню семьи', checkboxes.fmenu) then cfg.settings.fmenu = checkboxes.fmenu.v end
+				imgui.TextQuestion(u8'Активация: ALT + F')
+				if imgui.Checkbox(u8'Инвайт в семью', checkboxes.finv) then cfg.settings.finv = checkboxes.finv.v end
+				imgui.TextQuestion(u8'Активация: F + 1')
 			end
 			if menu == 4 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'Р Р°Р±РѕС‚Р° СЃ С‡Р°С‚РѕРј')
+        			imgui.CenterText(u8'Работа с чатом')
         		imgui.PopFont()
 				imgui.Separator()
 				if imgui.Checkbox(u8'Chat Helper', checkboxes.chathelper) then cfg.settings.chathelper = checkboxes.chathelper.v end
-				imgui.TextQuestion(u8'РџРѕРґСЃРєР°Р·РєРё РІ С‡Р°С‚Рµ')
+				imgui.TextQuestion(u8'Подсказки в чате')
 				if imgui.Checkbox(u8'Chat Calculator', checkboxes.calcbox) then cfg.settings.calcbox = checkboxes.calcbox.v end
-				imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: 1+1 (РІ С‡Р°С‚)')
+				imgui.TextQuestion(u8'Активация: 1+1 (в чат)')
 				if imgui.Checkbox(u8'PR Manager', checkboxes.prmanager) then cfg.settings.prmanager = checkboxes.prmanager.v end
-				imgui.TextQuestion(u8'РњРµРЅСЋ: /prm')
-				if imgui.Checkbox(u8'РЎРѕРєСЂР°С‰РµРЅРЅС‹Рµ РєРѕРјР°РЅРґС‹', checkboxes.cmds) then cfg.settings.cmds = checkboxes.cmds.v save() end
+				imgui.TextQuestion(u8'Меню: /prm')
+				if imgui.Checkbox(u8'Сокращенные команды', checkboxes.cmds) then cfg.settings.cmds = checkboxes.cmds.v save() end
 				if imgui.IsItemHovered() then
                     imgui.BeginTooltip()
                         imgui.Text(u8'/biz - /bizinfo\n/car [id] - /fixmycar\n/fh [id] - /findihouse\n/fbiz [id] - /findibiz\n/urc - /unrentcar\n/fin [id] [id biz] - /showbizinfo\n/ss - /setspawn')
@@ -832,65 +803,45 @@ function imgui.OnDrawFrame()
 			end
 			if menu == 5 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'Р Р°Р±РѕС‚Р° СЃ РґРёР°Р»РѕРіР°РјРё')
+        			imgui.CenterText(u8'Работа с диалогами')
         		imgui.PopFont()
 				imgui.Separator()
-				if imgui.Checkbox(u8'РђРІС‚РѕР»РѕРіРёРЅ РІ Р±Р°РЅРєРµ', checkboxes.cardlogin) then cfg.settings.cardlogin = checkboxes.cardlogin.v end
-				imgui.TextQuestion(u8'РќРµ СЂР°Р±РѕС‚Р°РµС‚ СЃ РЅРѕРІС‹РјРё РґРёР°Р»РѕРіР°РјРё')
+				if imgui.Checkbox(u8'Автологин в банке', checkboxes.cardlogin) then cfg.settings.cardlogin = checkboxes.cardlogin.v end
+				imgui.TextQuestion(u8'Не работает с новыми диалогами')
 				if checkboxes.cardlogin.v then 
-					imgui.Text(u8'	РџРёРЅ-РєРѕРґ:')
+					imgui.Text(u8'	Пин-код:')
 					imgui.SameLine()
 					imgui.PushItemWidth(54.5) 
-						if imgui.InputInt(u8'##Р»РѕРіРёРЅ Р±Р°РЅРє', ints.logincard, 0, 0) then cfg.settings.logincard = ints.logincard.v end
+						if imgui.InputInt(u8'##логин банк', ints.logincard, 0, 0) then cfg.settings.logincard = ints.logincard.v end
 				end
-				if imgui.Checkbox(u8'РђРІС‚РѕРѕРїР»Р°С‚Р° РЅР°Р»РѕРіРѕРІ', checkboxes.autopay) then cfg.settings.autopay = checkboxes.autopay.v end
-				imgui.TextQuestion(u8'РќРµ СЂР°Р±РѕС‚Р°РµС‚ СЃ РЅРѕРІС‹РјРё РґРёР°Р»РѕРіР°РјРё')
-				if imgui.Checkbox(u8'РђРІС‚РѕСЃР±РѕСЂ РµР¶РµРґРЅРµРІРЅС‹С… РїСЂРёР·РѕРІ', checkboxes.autoprize) then cfg.settings.autoprize = checkboxes.autoprize.v end
-				imgui.TextQuestion(u8'РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРѕР±РёСЂР°РµС‚ РїСЂРёР·С‹ РІ /dw_prizes')
+				if imgui.Checkbox(u8'Автооплата налогов', checkboxes.autopay) then cfg.settings.autopay = checkboxes.autopay.v end
+				imgui.TextQuestion(u8'Не работает с новыми диалогами')
+				if imgui.Checkbox(u8'Автосбор ежедневных призов', checkboxes.autoprize) then cfg.settings.autoprize = checkboxes.autoprize.v end
+				imgui.TextQuestion(u8'Автоматически собирает призы в /dw_prizes')
 				if imgui.Checkbox(u8'Mining Helper', checkboxes.mininghelper) then cfg.settings.mininghelper = checkboxes.mininghelper.v end
-				imgui.TextQuestion(u8'РЎР±РѕСЂ РїСЂРёР±С‹Р»Рё, РѕС…Р»Р°Р¶РґРµРЅРёРµ РІРёРґРµРѕРєР°СЂС‚ РІ РїР°СЂСѓ РєР»РёРєРѕРІ')
-				if imgui.Checkbox(u8'Р“СЂР°С„РёС‡РµСЃРєР°СЏ РєР»Р°РІРёР°С‚СѓСЂР°', checkboxes.keyboard) then cfg.settings.keyboard = checkboxes.keyboard.v end
-				if imgui.Checkbox(u8'Р’СЂРµРјСЏ РЅР° СЌРєСЂР°РЅРµ', checkboxes.timestate) then cfg.settings.timestate = checkboxes.timestate.v end
-				if checkboxes.timestate then
-					imgui.Text(u8'	Р Р°Р·РјРµСЂ С€СЂРёС„С‚Р°:')
-					imgui.SameLine()
-					imgui.PushItemWidth(72.5)  
-					if imgui.InputInt('##Fontsize', ints.timestamp__fontsize, 1, 1) then 
-						if ints.timestamp__fontsize.v < 1 then 
-							ints.timestamp__fontsize.v = 1 
-						elseif ints.timestamp__fontsize.v > 25 then
-							ints.timestamp__fontsize.v = 25 
-						end 
-						cfg.timestamp.fontsize = ints.timestamp__fontsize.v
-						font = renderCreateFont("Arial", cfg.timestamp.fontsize, 5) 
-					end
-					imgui.PopItemWidth()
-					imgui.Text(u8'	РР·РјРµРЅРёС‚СЊ СЂР°СЃРїРѕР»РѕР¶РµРЅРёРµ:')
-					imgui.SameLine()
-					if imgui.Button('X', imgui.ImVec2(17.5, 20)) then moving = true end
-					imgui.TextQuestion(u8'Р”Р»СЏ СѓСЃС‚Р°РЅРѕРІРєРё РїРѕР·РёС†РёРё РЅР°Р¶РјРёС‚Рµ Р›РљРњ')
-				end
+				imgui.TextQuestion(u8'Сбор прибыли, охлаждение видеокарт в пару кликов')
+				if imgui.Checkbox(u8'Графическая клавиатура', checkboxes.keyboard) then cfg.settings.keyboard = checkboxes.keyboard.v end
 				if imgui.Checkbox(u8'Autoscreen', checkboxes.autoscreen) then cfg.settings.autoscreen = checkboxes.autoscreen.v end
-				imgui.TextQuestion(u8'РџСЂРё РїРѕСЏРІР»РµРЅРёРё РґРёР°Р»РѕРіР° СЃ РїСЂРµРґР»РѕР¶РµРЅРёРµРј, \nР°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїРёС€РµС‚ /time Рё РЅР°Р¶РёРјР°РµС‚ F8')
+				imgui.TextQuestion(u8'При появлении диалога с предложением, \nавтоматически пишет /time и нажимает F8')
 			end
 			if menu == 6 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'РќР°СЃС‚СЂРѕР№РєРё')
+        			imgui.CenterText(u8'Настройки')
         		imgui.PopFont()
 				imgui.Separator()
-				imgui.offset(u8'РђРєС‚РёРІР°С†РёСЏ РјРµРЅСЋ: ') 
-			if imgui.Combo(u8'##РђРєС‚РёРІР°С†РёСЏ', ints.active, {u8'РљРѕРјР°РЅРґР°', u8'Р§РёС‚-РєРѕРґ'}, -1) then cfg.settings.active = ints.active.v save() end
+				imgui.offset(u8'Активация меню: ') 
+			if imgui.Combo(u8'##Активация', ints.active, {u8'Команда', u8'Чит-код'}, -1) then cfg.settings.active = ints.active.v save() end
 			if imgui.IsItemHovered() then
 	            imgui.BeginTooltip()
-	                imgui.Text(u8'РџРѕСЃР»Рµ РёР·РјРµРЅРµРЅРёСЏ СЂРµР¶РёРјР° Р°РєС‚РёРІР°С†РёРё, СЃРѕС…СЂР°РЅРёС‚Рµ СЃРєСЂРёРїС‚.')
+	                imgui.Text(u8'После изменения режима активации, сохраните скрипт.')
 	            imgui.EndTooltip()
             end
 				if ints.active.v == 1 then
-					imgui.offset(u8' Р§РёС‚-РєРѕРґ: ')
-					if imgui.InputTextWithHint(u8"##Р§РёС‚ РљРѕРґ", cfg.settings.cheatcode, buffers.cheatcode) then cfg.settings.cheatcode = buffers.cheatcode.v end
+					imgui.offset(u8' Чит-код: ')
+					if imgui.InputTextWithHint(u8"##Чит Код", cfg.settings.cheatcode, buffers.cheatcode) then cfg.settings.cheatcode = buffers.cheatcode.v end
 				end
-				imgui.offset(u8'РўРµРјР°: ') 
-					if imgui.Combo(u8'##РўРµРјР°', ints.theme, {u8'РљСЂР°СЃРЅС‹Р№', u8'Р—РµР»РµРЅС‹Р№', u8'РЎРёРЅРёР№', u8'РЎР°Р»Р°С‚РѕРІС‹Р№', u8'РћСЂР°РЅР¶РµРІС‹Р№', u8'Р¤РёРѕР»РµС‚РѕРІС‹Р№', u8'РўРѕРєСЃРёС‡РЅС‹Р№', u8'Р РѕР·РѕРІС‹Р№', u8'РљРѕСЂРёС‡РЅРµРІР°СЏ', u8'РЎРµСЂР°СЏ', u8'РљР°СЃС‚РѕРјРёР·РёСЂРѕРІР°РЅРЅР°СЏ'}, -1) then cfg.settings.theme = ints.theme.v save()
+				imgui.offset(u8'Тема: ') 
+					if imgui.Combo(u8'##Тема', ints.theme, {u8'Красный', u8'Зеленый', u8'Синий', u8'Салатовый', u8'Оранжевый', u8'Фиолетовый', u8'Токсичный', u8'Розовый', u8'Коричневая', u8'Серая', u8'Кастомизированная'}, -1) then cfg.settings.theme = ints.theme.v save()
 						if cfg.settings.theme == 0 then themeSettings(0) color = '{ff4747}'
 						elseif cfg.settings.theme == 1 then themeSettings(1) color = '{00b052}'
 						elseif cfg.settings.theme == 2 then themeSettings(2) color = '{007ABE}'
@@ -904,7 +855,7 @@ function imgui.OnDrawFrame()
 					end
 				end
 				if ints.theme.v == 10 then
-					imgui.Text(u8'	Р¦РІРµС‚ С‚РµРјС‹: ')
+					imgui.Text(u8'	Цвет темы: ')
 			    imgui.SameLine()
 			    if imgui.ColorEdit3('##colortheme', colortheme, imgui.ColorEditFlags.NoInputs) then
 			       	color = join_rgba(colortheme.v[1] * 255, colortheme.v[2] * 255, colortheme.v[3] * 255, 0)
@@ -914,29 +865,29 @@ function imgui.OnDrawFrame()
 					cfg.settings.color = color
     			end
 				end
-				if imgui.Checkbox(u8'РџСЂРёРІРµС‚СЃС‚РІРµРЅРЅРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ', checkboxes.hello) then cfg.settings.hello = checkboxes.hello.v end
+				if imgui.Checkbox(u8'Приветственное сообщение', checkboxes.hello) then cfg.settings.hello = checkboxes.hello.v end
 				imgui.SetCursorPosX(89)
 			end
 			if menu == 7 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'РРЅС„РѕСЂРјР°С†РёСЏ')
+        			imgui.CenterText(u8'Информация')
         		imgui.PopFont()
 				imgui.Separator()
-				imgui.Text(u8'OS Helper - СЃРѕРІРµСЂС€РµРЅРЅРѕ РЅРѕРІС‹Р№ СЃРєСЂРёРїС‚,\n РЅР°РїСЂР°РІР»РµРЅРЅС‹Р№ РЅР° РѕР±Р»РµРіС‡РµРЅРёРµ Р¶РёР·РЅРё \n РєР°Рє РїСЂРѕСЃС‚С‹Рј РёРіСЂРѕРєР°Рј, С‚Р°Рє Рё РєСЂСѓРїРЅС‹Рј Р±РёР·РЅРµСЃРјРµРЅР°Рј. \n Р”Р°РЅРЅРѕРµ РџРћ РЅРµ РІС‹СЃС‚СѓРїР°РµС‚ РІ СЂРѕР»Рё С‡РёС‚Р° РёР»Рё СЃС‚РёР»Р»РµСЂР°.\n Р•РіРѕ РѕСЃРЅРѕРІРЅР°СЏ Р·Р°РґР°С‡Р° РїСЂРµРІСЂР°С‚РёС‚СЊ \n РѕРґРЅРѕС‚РёРїРЅС‹Рµ РґРµР№СЃС‚РІРёСЏ РІ Р±РѕР»РµРµ \n РєРѕРјС„РѕСЂС‚РЅС‹Р№ СЌРєСЃРїРёСЂРёРµРЅСЃ РІРѕ РІСЂРµРјСЏ РёРіСЂС‹.')
+				imgui.Text(u8'OS Helper - совершенно новый скрипт,\n направленный на облегчение жизни \n как простым игрокам, так и крупным бизнесменам. \n Данное ПО не выступает в роли чита или стиллера.\n Его основная задача превратить \n однотипные действия в более \n комфортный экспириенс во время игры.')
 				imgui.Text('')
-				imgui.Text(u8'РђРІС‚РѕСЂС‹:') imgui.SameLine() imgui.Link('https://vk.com/deveeh', 'deveeh') imgui.SameLine() imgui.Text(u8'Рё') imgui.SameLine() imgui.Link('https://t.me/atimohov', 'casparo')
-				imgui.Text(u8'Р“СЂСѓРїРїР° Р’РљРѕРЅС‚Р°РєС‚Рµ:') imgui.SameLine() imgui.Link('https://vk.com/oshelper_rodina', 'vk.com/oshelper_rodina')
-				imgui.Text(u8'РќР°С€Р»Рё Р±Р°Рі?') imgui.SameLine() imgui.Link('https://vk.com/topic-215734333_49024979', u8'Р’Р°Рј СЃСЋРґР°!')
+				imgui.Text(u8'Авторы:') imgui.SameLine() imgui.Link('https://vk.com/deveeh', 'deveeh') imgui.SameLine() imgui.Text(u8'и') imgui.SameLine() imgui.Link('https://t.me/atimohov', 'casparo')
+				imgui.Text(u8'Группа ВКонтакте:') imgui.SameLine() imgui.Link('https://vk.com/oshelper_rodina', 'vk.com/oshelper_rodina')
+				imgui.Text(u8'Нашли баг?') imgui.SameLine() imgui.Link('https://vk.com/topic-215734333_49024979', u8'Вам сюда!')
 			end
 			if menu == 8 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'РћРєСЂСѓР¶РµРЅРёРµ')
+        			imgui.CenterText(u8'Окружение')
         		imgui.PopFont()
 				imgui.Separator()
-				if imgui.Checkbox(u8'Р РµРґР°РєС‚РѕСЂ РІСЂРµРјРµРЅРё Рё РїРѕРіРѕРґС‹', checkboxes.timeweather) then cfg.settings.timeweather = checkboxes.timeweather.v end
+				if imgui.Checkbox(u8'Редактор времени и погоды', checkboxes.timeweather) then cfg.settings.timeweather = checkboxes.timeweather.v end
 				if checkboxes.timeweather.v then
 					imgui.PushItemWidth(75)
-					imgui.Text(u8'	Р’СЂРµРјСЏ: ')
+					imgui.Text(u8'	Время: ')
 					imgui.SameLine()
 					imgui.SetCursorPosX(62)
 					if imgui.InputInt(u8'##time', ints.time) then
@@ -949,7 +900,7 @@ function imgui.OnDrawFrame()
 						end
 						cfg.settings.time = ints.time.v
 					end
-					imgui.Text(u8'	РџРѕРіРѕРґР°: ')
+					imgui.Text(u8'	Погода: ')
 					imgui.SameLine()
 					if imgui.InputInt(u8'##weather', ints.weather) then
 						if ints.weather.v < 0 then
@@ -960,7 +911,7 @@ function imgui.OnDrawFrame()
 						cfg.settings.weather = ints.weather.v 
 					end
 				end
-				if imgui.Checkbox(u8'РќР°СЃС‚СЂРѕР№РєР° FOV', checkboxes.fisheye) then cfg.settings.fisheye = checkboxes.fisheye.v end
+				if imgui.Checkbox(u8'Настройка FOV', checkboxes.fisheye) then cfg.settings.fisheye = checkboxes.fisheye.v end
 				if checkboxes.fisheye.v then
 					imgui.Text(u8'	FOV:') imgui.SameLine()
 					if imgui.SliderInt('##FOV', ints.fov, 1, 100) then cfg.settings.fov = ints.fov.v end
@@ -968,44 +919,42 @@ function imgui.OnDrawFrame()
 			end
 			if menu == 9 then
 				imgui.PushFont(fontsize)
-        			imgui.CenterText(u8'Р”РѕРїРѕР»РЅРµРЅРёСЏ')
+        			imgui.CenterText(u8'Дополнения')
         		imgui.PopFont()
 				imgui.Separator()
 				if imgui.Checkbox(u8'OS Music', checkboxes.osplayer) then cfg.settings.osplayer = checkboxes.osplayer.v end
-				imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /osmusic\nР§С‚РѕР±С‹ Р·Р°РіСЂСѓР·РёС‚СЊ СЃРІРѕРё РїРµСЃРЅРё, РѕС‚РєСЂРѕР№С‚Рµ РїР°РїРєСѓ СЃ РёРіСЂРѕР№, \nРґР°Р»РµРµ Р·Р°Р№РґРёС‚Рµ РІ moonloader/OS Helper/OS Music.')
+				imgui.TextQuestion(u8'Активация: /osmusic\nЧтобы загрузить свои песни, откройте папку с игрой, \nдалее зайдите в moonloader/OS Helper/OS Music.')
 				if imgui.Checkbox(u8'Job Helper', checkboxes.job) then cfg.settings.job = checkboxes.job.v end
-				imgui.TextQuestion(u8'Р›СѓС‡С€РёР№ РїРѕРјРѕС‰РЅРёРє РґР»СЏ РІР°С€РµР№ Р»СЋР±РёРјРѕР№ СЂР°Р±РѕС‚С‹')
+				imgui.TextQuestion(u8'Лучший помощник для вашей любимой работы')
 				if checkboxes.job.v then
 					imgui.Text('	') imgui.SameLine()
 					if imgui.Checkbox(u8'Bus Helper', checkboxes.bus) then cfg.settings.bus = checkboxes.bus.v end
-					imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /bus\nРџРѕРґСЃС‡С‘С‚ Р·Р°СЂР°Р±РѕС‚РєР° РЅР° СЂР°Р±РѕС‚Рµ Р°РІС‚РѕР±СѓСЃРЅРёРєР°')
+					imgui.TextQuestion(u8'Активация: /bus\nПодсчёт заработка на работе автобусника')
 					imgui.Text('	') imgui.SameLine()
 					if imgui.Checkbox(u8'Mine Helper', checkboxes.mine) then cfg.settings.mine = checkboxes.mine.v end
-					imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /mine\nРџРѕРґСЃС‡С‘С‚ Р·Р°СЂР°Р±РѕС‚РєР° РЅР° СЂР°Р±РѕС‚Рµ С€Р°С…С‚РµСЂР°')
+					imgui.TextQuestion(u8'Активация: /mine\nПодсчёт заработка на работе шахтера')
 					imgui.Text('	') imgui.SameLine()
 					if imgui.Checkbox(u8'Farm Helper', checkboxes.farm) then cfg.settings.farm = checkboxes.farm.v end
-					imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /farm\nРџРѕРґСЃС‡С‘С‚ Р·Р°СЂР°Р±РѕС‚РєР° РЅР° СЂР°Р±РѕС‚Рµ С„РµСЂРјРµСЂР°')
+					imgui.TextQuestion(u8'Активация: /farm\nПодсчёт заработка на работе фермера')
 					imgui.Text('	') imgui.SameLine()
 					if imgui.Checkbox(u8'Fish Helper', checkboxes.fish) then cfg.settings.fish = checkboxes.fish.v end
-					imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /fish\nРџРѕРґСЃС‡С‘С‚ Р·Р°СЂР°Р±РѕС‚РєР° РЅР° СЂР°Р±РѕС‚Рµ СЂС‹Р±РѕР»РѕРІР°')
+					imgui.TextQuestion(u8'Активация: /fish\nПодсчёт заработка на работе рыболова')
 				end
-			end
-			if menu == 10 then 	
-			imgui.CenterText(fa.ICON_FA_INFO.. u8"  РРЅС„Рѕ-РїР°РЅРµР»СЊ  "..fa.ICON_FA_INFO) 
-				imgui.Text(u8"РЎС‚Р°С‚СѓСЃ: ") imgui.SameLine()
-					if imgui.ToggleButton(u8'##РЎС‚Р°С‚СѓСЃ: ', checkboxes.doppanel) then
-						cfg.infopanel.doppanel = checkboxes.doppanel.v
-						inicfg.save(cfg, "OSHelper.ini")
-					end
-				imgui.SameLine()
-				imgui.Text(u8(cfg.infopanel.doppanel and 'РђРєС‚РёРІРЅР°' or 'РќРµР°РєС‚РёРІРЅР°'))
-					if imgui.Button(u8'РџРѕР·РёС†РёСЏ', imgui.ImVec2(200, 25)) then
-						lua_thread.create(function ()
+				if imgui.Checkbox(u8'Infoboard', checkboxes.doppanel) then cfg.infopanel.doppanel = checkboxes.doppanel.v end
+				if checkboxes.doppanel.v then 
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать никнейм и ID", checkboxes.nickact) then cfg.infopanel.nickact = checkboxes.nickact.v end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать ping", checkboxes.pingact) then cfg.infopanel.pingact = checkboxes.pingact.v end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать дату", checkboxes.daysact) then cfg.infopanel.daysact = checkboxes.daysact.v end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать время", checkboxes.timeact) then cfg.infopanel.timeact = checkboxes.timeact.v end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать HP", checkboxes.hpact) then cfg.infopanel.hpact = checkboxes.hpact.v end
+					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать HP бронежилета", checkboxes.armouract) then cfg.infopanel.armouract = checkboxes.armouract.v end
+					imgui.Text('	') imgui.SameLine() if imgui.Button('X', imgui.ImVec2(20, 20)) then
+						lua_thread.create(function()
 							showCursor(true, true)
 							checkCursor = true
 							frames.window.v = false
 							sampSetCursorMode(4)
-							sampAddChatMessage('РќР°Р¶РјРёС‚Рµ {FF8000}РџР РћР‘Р•Р›{FFFFFF} РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РїРѕР·РёС†РёРё.')
+							msg('Нажмите ПРОБЕЛ для сохранения позиции.')
 							while checkCursor do
 								local cX, cY = getCursorPos()
 									posX, posY = cX, cY
@@ -1015,20 +964,55 @@ function imgui.OnDrawFrame()
 										frames.window.v = true
 										checkCursor = false
 										showCursor(false, false)
-										if inicfg.save(cfg, "OSHelper.ini") then sampAddChatMessage('РџРѕР·РёС†РёСЏ РёРЅС„Рѕ-РїР°РЅРµР»Рё СЃРѕС…СЂР°РЅРµРЅР°!') end
+										if inicfg.save(cfg, "OSHelper.ini") then msg('Позиция панели сохранена!') end
 									end
 								wait(0)
 							end
 						end)
 					end
-				if imgui.ToggleButton(u8"##nickid", checkboxes.nickact) then cfg.infopanel.nickact = checkboxes.nickact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РЅРёРє Рё id")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РІСЂРµРјСЏ", checkboxes.timeact) then cfg.infopanel.timeact = checkboxes.timeact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РІСЂРµРјСЏ")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РґРµРЅСЊ РЅРµРґРµР»Рё", checkboxes.daysact) then cfg.infopanel.daysact = checkboxes.daysact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РґРµРЅСЊ РЅРµРґРµР»Рё")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РєРѕР»Р»РёС‡РµСЃС‚РІРѕ РєР°РґСЂРѕРІ", checkboxes.fpsact) then cfg.infopanel.fpsact = checkboxes.fpsact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РєРѕР»Р»РёС‡РµСЃС‚РІРѕ РєР°РґСЂРѕРІ")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РїРёРЅРі", checkboxes.pingact) then cfg.infopanel.pingact = checkboxes.pingact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РїРёРЅРі")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ ID СЃРІРѕРµРіРѕ СЃРєРёРЅР°", checkboxes.skinact) then cfg.infopanel.skinact = checkboxes.skinact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ ID СЃРІРѕРµРіРѕ СЃРєРёРЅР°")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ С†РµР»РѕСЃС‚РЅРѕСЃС‚СЊ Р±СЂРѕРЅРёРєР°", checkboxes.armouract) then cfg.infopanel.armouract = checkboxes.armouract.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ С†РµР»РѕСЃС‚РЅРѕСЃС‚СЊ Р±СЂРѕРЅРёРєР°")
-				if imgui.ToggleButton(u8"##РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РєРѕР»Р»РёС‡РµСЃС‚РІРѕ РҐРџ", checkboxes.hpact) then cfg.infopanel.hpact = checkboxes.hpact.v end imgui.SameLine() imgui.Text(u8"РћС‚РѕР±СЂР°Р¶Р°С‚СЊ РєРѕР»Р»РёС‡РµСЃС‚РІРѕ РҐРџ")
+					imgui.SameLine()
+					imgui.Text(u8'Изменить расположение')
+				end
+			end
+			if menu == 10 then 	
+			imgui.CenterText(fa.ICON_FA_INFO.. u8"  Инфо-панель  "..fa.ICON_FA_INFO) 
+				imgui.Text(u8"Статус: ") imgui.SameLine()
+					if imgui.Checkbox(u8'##Статус: ', checkboxes.doppanel) then
+						cfg.infopanel.doppanel = checkboxes.doppanel.v
+						inicfg.save(cfg, "OSHelper.ini")
+					end
+				imgui.SameLine()
+				imgui.Text(u8(cfg.infopanel.doppanel and 'Активна' or 'Неактивна'))
+					if imgui.Button(u8'Позиция', imgui.ImVec2(200, 25)) then
+						lua_thread.create(function ()
+							showCursor(true, true)
+							checkCursor = true
+							frames.window.v = false
+							sampSetCursorMode(4)
+							msg('Нажмите ПРОБЕЛ для сохранения позиции.')
+							while checkCursor do
+								local cX, cY = getCursorPos()
+									posX, posY = cX, cY
+									if isKeyDown(32) then
+										sampSetCursorMode(0)
+										cfg.infopanel.x, cfg.infopanel.y = posX, posY
+										frames.window.v = true
+										checkCursor = false
+										showCursor(false, false)
+										if inicfg.save(cfg, "OSHelper.ini") then msg('Позиция панели сохранена!') end
+									end
+								wait(0)
+							end
+						end)
+					end
+				if imgui.Checkbox(u8"Отображать ник и id", checkboxes.nickact) then cfg.infopanel.nickact = checkboxes.nickact.v end
+				if imgui.Checkbox(u8"Отображать время", checkboxes.timeact) then cfg.infopanel.timeact = checkboxes.timeact.v end
+				if imgui.Checkbox(u8"Отображать день недели", checkboxes.daysact) then cfg.infopanel.daysact = checkboxes.daysact.v end
+				if imgui.Checkbox(u8"Отображать количество кадров", checkboxes.fpsact) then cfg.infopanel.fpsact = checkboxes.fpsact.v end
+				if imgui.Checkbox(u8"Отображать пинг", checkboxes.pingact) then cfg.infopanel.pingact = checkboxes.pingact.v end
+				if imgui.Checkbox(u8"Отображать ID своего скина", checkboxes.skinact) then cfg.infopanel.skinact = checkboxes.skinact.v end
+				if imgui.Checkbox(u8"Отображать целостность броника", checkboxes.armouract) then cfg.infopanel.armouract = checkboxes.armouract.v end
+				if imgui.Checkbox(u8"Отображать колличество ХП", checkboxes.hpact) then cfg.infopanel.hpact = checkboxes.hpact.v end
 			end
 			imgui.EndChild()
 		imgui.End()
@@ -1038,58 +1022,58 @@ function imgui.OnDrawFrame()
         imgui.SetNextWindowSize(imgui.ImVec2(300, 400), imgui.Cond.FirstUseEver)
     	imgui.Begin('PR Manager (OS '..thisScript().version..')##prmenu', frames.prmwindow, imgui.WindowFlags.NoResize)
         	if checkboxes.prmanager.v then
-	        	if imgui.Checkbox(u8'Р РµРєР»Р°РјР° РІ VIP CHAT (/vr)', vr1) then cfg.settings.vr1 = vr1.v end
+	        	if imgui.Checkbox(u8'Реклама в VIP CHAT (/vr)', vr1) then cfg.settings.vr1 = vr1.v end
 				if vr1.v then
-					imgui.Text(u8'РЎРѕРѕР±С‰РµРЅРёРµ: ')
+					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
-					if imgui.InputTextWithHint(u8"##vr1", u8"Р Р°Р±РѕС‚Р°РµС‚ Р‘Рљ Р›С‹С‚РєР°СЂРёРЅРѕ в„–56!", buffers.vrmsg1) then cfg.settings.vrmsg1 = buffers.vrmsg1.v end
+					if imgui.InputTextWithHint(u8"##vr1", u8"Работает БК Лыткарино №56!", buffers.vrmsg1) then cfg.settings.vrmsg1 = buffers.vrmsg1.v end
 					end
-				if imgui.Checkbox(u8'Р РµРєР»Р°РјР° РІ FAMILY CHAT (/fam)', checkboxes.fam) then cfg.settings.fam = checkboxes.fam.v end
+				if imgui.Checkbox(u8'Реклама в FAMILY CHAT (/fam)', checkboxes.fam) then cfg.settings.fam = checkboxes.fam.v end
 				if checkboxes.fam.v then
-					imgui.Text(u8'РЎРѕРѕР±С‰РµРЅРёРµ: ')
+					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
-					if imgui.InputTextWithHint(u8"##fammsg", u8"Р Р°Р±РѕС‚Р°РµС‚ Р‘Рљ Р­РґРѕРІРѕ в„–57!", buffers.fammsg) then cfg.settings.fammsg = buffers.fammsg.v end
+					if imgui.InputTextWithHint(u8"##fammsg", u8"Работает БК Эдово №57!", buffers.fammsg) then cfg.settings.fammsg = buffers.fammsg.v end
 				end
-				if imgui.Checkbox(u8'Р РµРєР»Р°РјР° РІ ALLIANCE CHAT (/al)', checkboxes.al) then cfg.settings.al = checkboxes.al.v end
+				if imgui.Checkbox(u8'Реклама в ALLIANCE CHAT (/al)', checkboxes.al) then cfg.settings.al = checkboxes.al.v end
 				if checkboxes.al.v then
-					imgui.Text(u8'РЎРѕРѕР±С‰РµРЅРёРµ: ')
+					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
-					if imgui.InputTextWithHint(u8"##almsg", u8"Р Р°Р±РѕС‚Р°РµС‚ Р‘Рљ Р›С‹С‚РєР°СЂРёРЅРѕ в„–56!", buffers.almsg) then cfg.settings.almsg = buffers.almsg.v end
+					if imgui.InputTextWithHint(u8"##almsg", u8"Работает БК Лыткарино №56!", buffers.almsg) then cfg.settings.almsg = buffers.almsg.v end
 					end
-				if imgui.Checkbox(u8'Р РµРєР»Р°РјР° РІ AD (/ad 1)', checkboxes.adbox) then cfg.settings.adbox = checkboxes.adbox.v end
+				if imgui.Checkbox(u8'Реклама в AD (/ad 1)', checkboxes.adbox) then cfg.settings.adbox = checkboxes.adbox.v end
 				if checkboxes.adbox.v then
-					imgui.Text(u8'РЎРѕРѕР±С‰РµРЅРёРµ: ')
+					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
-					if imgui.InputTextWithHint(u8"##admsg1", u8"Р Р°Р±РѕС‚Р°РµС‚ Р‘Рљ Р›С‹С‚РєР°СЂРёРЅРѕ в„–56!", buffers.admsg1) then cfg.settings.admsg1 = buffers.admsg1.v end
+					if imgui.InputTextWithHint(u8"##admsg1", u8"Работает БК Лыткарино №56!", buffers.admsg1) then cfg.settings.admsg1 = buffers.admsg1.v end
 				end
-				if imgui.Checkbox(u8'Р РµРєР»Р°РјР° РІ NRP CHAT (/b)', checkboxes.bchat) then cfg.settings.bchat = checkboxes.bchat.v end
+				if imgui.Checkbox(u8'Реклама в NRP CHAT (/b)', checkboxes.bchat) then cfg.settings.bchat = checkboxes.bchat.v end
 				if checkboxes.bchat.v then
-					imgui.Text(u8'РЎРѕРѕР±С‰РµРЅРёРµ: ')
+					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
-					if imgui.InputTextWithHint(u8"##bmsg", u8"Р Р°Р±РѕС‚Р°РµС‚ Р‘Рљ Р­РґРѕРІРѕ в„–57!", buffers.bmsg) then cfg.settings.bmsg = buffers.bmsg.v end
+					if imgui.InputTextWithHint(u8"##bmsg", u8"Работает БК Эдово №57!", buffers.bmsg) then cfg.settings.bmsg = buffers.bmsg.v end
 				end
-				if imgui.Checkbox(u8'Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅР°СЏ СЃС‚СЂРѕРєР°', checkboxes.prstring) then cfg.settings.prstring = checkboxes.prstring.v end
+				if imgui.Checkbox(u8'Дополнительная строка', checkboxes.prstring) then cfg.settings.prstring = checkboxes.prstring.v end
 				if checkboxes.prstring.v then
-					imgui.Text(u8'РЎРѕРѕР±С‰РµРЅРёРµ: ')
+					imgui.Text(u8'Сообщение: ')
 					imgui.SameLine()
-					if imgui.InputTextWithHint(u8"##prstring", u8"/vr Р Р°Р±РѕС‚Р°РµС‚ Р‘Рљ Р­РґРѕРІРѕ в„–57!", buffers.stringmsg) then cfg.settings.stringmsg = buffers.stringmsg.v end
+					if imgui.InputTextWithHint(u8"##prstring", u8"/vr Работает БК Эдово №57!", buffers.stringmsg) then cfg.settings.stringmsg = buffers.stringmsg.v end
 				end
 				imgui.Separator()
-				if imgui.Checkbox(u8'Р’РєР»СЋС‡РµРЅРёРµ СЂРµРєР»Р°РјС‹ РїСЂРё Р·Р°С…РѕРґРµ', checkboxes.prconnect) then cfg.settings.prconnect = checkboxes.prconnect.v end
-				imgui.Text(u8'Р—Р°РґРµСЂР¶РєР°: ')
+				if imgui.Checkbox(u8'Включение рекламы при заходе', checkboxes.prconnect) then cfg.settings.prconnect = checkboxes.prconnect.v end
+				imgui.Text(u8'Задержка: ')
 				imgui.SameLine()
 				imgui.PushItemWidth(40)
-				if imgui.InputInt("##Р—Р°РґРµСЂР¶РєР°", checkboxes.delay, 0, 0) then cfg.settings.delay = checkboxes.delay.v end
+				if imgui.InputInt("##Задержка", checkboxes.delay, 0, 0) then cfg.settings.delay = checkboxes.delay.v end
 				imgui.SameLine() 
-				imgui.Text(u8'СЃРµРє.')
-				imgui.Text(u8'РђРєС‚РёРІР°С†РёСЏ: /pr')
+				imgui.Text(u8'сек.')
+				imgui.Text(u8'Активация: /pr')
 		    else
-		    	imgui.CenterText(u8'Р’РєР»СЋС‡РёС‚Рµ РІ РіР»Р°РІРЅРѕРј РјРµРЅСЋ С„СѓРЅРєС†РёСЋ PR Manager.')
+		    	imgui.CenterText(u8'Включите в главном меню функцию PR Manager.')
 		    end
 		    imgui.SetCursorPos(imgui.ImVec2(5, 375))
-		    if imgui.Button(u8'РЎРѕС…СЂР°РЅРёС‚СЊ', imgui.ImVec2(290, 20)) then
+		    if imgui.Button(u8'Сохранить', imgui.ImVec2(290, 20)) then
 		        save()
-		        msg('Р’СЃРµ РЅР°СЃС‚СЂРѕР№РєРё СЃРѕС…СЂР°РЅРµРЅС‹.')
+		        msg('Все настройки сохранены.')
 		    end
 
     	imgui.End()
@@ -1101,26 +1085,20 @@ function imgui.OnDrawFrame()
 				imgui.Text(u8(nick)) imgui.SameLine()
 				imgui.Text("["..id.."]")
 			end
-			if cfg.infopanel.timeact then
-				imgui.Text(u8"Р’СЂРµРјСЏ: "..nowTime)
+			if cfg.infopanel.pingact then
+				imgui.Text(u8"Ping: ".. ping .. "ms")
 			end
 			if cfg.infopanel.daysact then
-				imgui.Text(u8(day_date[tonumber(os.date('%w'))]))
-			end		
-			if cfg.infopanel.fpsact then	
-				imgui.Text(u8"FPS: ".. fps)
-			end		
-			if cfg.infopanel.pingact then
-				imgui.Text(u8"Ping: ".. ping)
+				imgui.Text(os.date("%d.%m.%Y / ")..u8(day_date[tonumber(os.date('%w'))]))
 			end
-			if cfg.infopanel.skinact then
-				imgui.Text(u8"РЎРєРёРЅ: "..skinid)
-			end
+			if cfg.infopanel.timeact then
+				imgui.Text(u8"Время: "..nowTime)
+			end			
 			if cfg.infopanel.armouract then
-				imgui.Text(u8"Р‘СЂРѕРЅСЏ: "..armour)
+				imgui.Text(u8"HP бронежилета: "..armour)
 			end
 			if cfg.infopanel.hpact then
-				imgui.Text(u8"Р—РґРѕСЂРѕРІСЊРµ: "..health)
+				imgui.Text(u8"HP: "..health)
 			end
 		imgui.End()
 	end
@@ -1149,8 +1127,8 @@ function imgui.OnDrawFrame()
 			imgui.ShowCursor = true
 		end
 		if checkboxes.kbact.v then
-		imgui.PushStyleVar(imgui.StyleVar.WindowPadding, imgui.ImVec2(5.0, 2.4)) -- Р¤РёРєСЃ РїРѕР»РѕР¶РµРЅРёСЏ РєР»Р°РІРёС€
-		imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(0,0,0,0)) -- РЈР±РёСЂР°РµРј С„РѕРЅ
+		imgui.PushStyleVar(imgui.StyleVar.WindowPadding, imgui.ImVec2(5.0, 2.4)) -- Фикс положения клавиш
+		imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(0,0,0,0)) -- Убираем фон
 		imgui.SetNextWindowPos(checkboxes.keyboard_pos, imgui.Cond.FirstUseEver, imgui.ImVec2(0, 0))
 		imgui.Begin('##keyboard', _, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.AlwaysAutoResize + (checkboxes.move.v and 0 or imgui.WindowFlags.NoMove) )
 			checkboxes.keyboard_pos = imgui.GetWindowPos()
@@ -1185,31 +1163,31 @@ end
 	
 function character()
 	imgui.PushFont(fontsize)
-		imgui.CenterText(u8'РџРµСЂСЃРѕРЅР°Р¶')
+		imgui.CenterText(u8'Персонаж')
 	imgui.PopFont()
 	imgui.Separator()
-	if imgui.Checkbox(u8'Р‘СЂРѕРЅРµР¶РёР»РµС‚', checkboxes.armor) then cfg.settings.armor = checkboxes.armor.v end
-		imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р±СЂРѕРЅРµР¶РёР»РµС‚: ALT + 1\nРќР°СЃС‚СЂРѕР№РєР° С‚Р°Р№РјРµСЂР° РґРѕСЃС‚СѓРїРЅР° РїРѕСЃР»Рµ РІРєР»СЋС‡РµРЅРёСЏ РіР»Р°РІРЅРѕР№ С„СѓРЅРєС†РёРё')
-		if checkboxes.armor.v then imgui.Text('	') imgui.SameLine()  if imgui.Checkbox(u8'РђСЂРјРѕСЂС‚Р°Р№РјРµСЂ', checkboxes.armortimer) then cfg.settings.armortimer = checkboxes.armortimer.v end end
-		if imgui.Checkbox(u8'РњР°СЃРєР°', checkboxes.mask) then cfg.settings.mask = checkboxes.mask.v end
-		imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РјР°СЃРєСѓ: ALT + 2')
-		if imgui.Checkbox(u8'РќР°СЂРєРѕС‚РёРєРё (3 С€С‚)', checkboxes.drugs) then cfg.settings.drugs = checkboxes.drugs.v end
-		imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РЅР°СЂРєРѕ: ALT + 3\nРќР°СЃС‚СЂРѕР№РєР° С‚Р°Р№РјРµСЂР° Рё Р°РЅС‚РёР»РѕРјРєРё РґРѕСЃС‚СѓРїРЅР° РїРѕСЃР»Рµ РІРєР»СЋС‡РµРЅРёСЏ РіР»Р°РІРЅРѕР№ С„СѓРЅРєС†РёРё')
+	if imgui.Checkbox(u8'Бронежилет', checkboxes.armor) then cfg.settings.armor = checkboxes.armor.v end
+		imgui.TextQuestion(u8'Использовать бронежилет: ALT + 1\nНастройка таймера доступна после включения главной функции')
+		if checkboxes.armor.v then imgui.Text('	') imgui.SameLine()  if imgui.Checkbox(u8'Армортаймер', checkboxes.armortimer) then cfg.settings.armortimer = checkboxes.armortimer.v end end
+		if imgui.Checkbox(u8'Маска', checkboxes.mask) then cfg.settings.mask = checkboxes.mask.v end
+		imgui.TextQuestion(u8'Использовать маску: ALT + 2')
+		if imgui.Checkbox(u8'Наркотики (3 шт)', checkboxes.drugs) then cfg.settings.drugs = checkboxes.drugs.v end
+		imgui.TextQuestion(u8'Использовать нарко: ALT + 3\nНастройка таймера и антиломки доступна после включения главной функции')
 		if checkboxes.drugs.v then 
 			imgui.Text('	') imgui.SameLine()  
-			if imgui.Checkbox(u8'РќР°СЂРєРѕС‚Р°Р№РјРµСЂ', checkboxes.drugstimer) then cfg.settings.drugstimer = checkboxes.drugstimer.v end
+			if imgui.Checkbox(u8'Наркотаймер', checkboxes.drugstimer) then cfg.settings.drugstimer = checkboxes.drugstimer.v end
 			imgui.Text('	') imgui.SameLine() 
-			if imgui.Checkbox(u8'РђРЅС‚РёР»РѕРјРєР°', checkboxes.antilomka) then cfg.settings.antilomka = checkboxes.antilomka.v end  
+			if imgui.Checkbox(u8'Антиломка', checkboxes.antilomka) then cfg.settings.antilomka = checkboxes.antilomka.v end  
 		end
-		if imgui.Checkbox(u8'РђРїС‚РµС‡РєР°', checkboxes.med) then cfg.settings.med = checkboxes.med.v end
-		imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р°РїС‚РµС‡РєСѓ: ALT + 4\nРќР°СЃС‚СЂРѕР№РєР° Р°РІС‚РѕС…РёР»Р»Р° РґРѕСЃС‚СѓРїРЅР° РїРѕСЃР»Рµ РІРєР»СЋС‡РµРЅРёСЏ РіР»Р°РІРЅРѕР№ С„СѓРЅРєС†РёРё')
+		if imgui.Checkbox(u8'Аптечка', checkboxes.med) then cfg.settings.med = checkboxes.med.v end
+		imgui.TextQuestion(u8'Использовать аптечку: ALT + 4\nНастройка автохилла доступна после включения главной функции')
 		if checkboxes.med.v then
 			imgui.Text('	') imgui.SameLine()
-			if imgui.Checkbox(u8'РђРІС‚РѕС…РёР»Р»', checkboxes.automed) then cfg.settings.automed = checkboxes.automed.v end
+			if imgui.Checkbox(u8'Автохилл', checkboxes.automed) then cfg.settings.automed = checkboxes.automed.v end
 			if checkboxes.automed.v then
 				imgui.Text('		HP:') imgui.SameLine() 
 				imgui.PushItemWidth(73) 
-				if imgui.InputInt("##Р°РІС‚РѕС…РёР»Р»", ints.hpmed) then 
+				if imgui.InputInt("##автохилл", ints.hpmed) then 
 					if ints.hpmed.v > 99 then
 						ints.hpmed.v = 99
 					elseif ints.hpmed.v < 1 then
@@ -1221,41 +1199,41 @@ function character()
 				imgui.PopItemWidth()
 			end
 		end
-		if imgui.Checkbox(u8'РђРІС‚РѕСѓСЃРєРѕСЂРµРЅРёРµ', checkboxes.autorun) then cfg.settings.autorun = checkboxes.autorun.v end
-		imgui.TextQuestion(u8'РџСЂРё РЅР°Р¶Р°С‚РёРё РЅР° РєРЅРѕРїРєСѓ Р±РµРіР°, РїРµСЂСЃРѕРЅР°Р¶ РїРµСЂРµС…РѕРґРёС‚ РЅР° Р±С‹СЃС‚СЂС‹Р№ Р±РµРі')
-		if imgui.Checkbox(u8'Р•РґР°', checkboxes.eat) then cfg.settings.eat = checkboxes.eat.v end
-		imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ С‡РёРїСЃС‹: ALT + 5\nРќР°СЃС‚СЂРѕР№РєР° Р°РІС‚РѕРµРґС‹ РґРѕСЃС‚СѓРїРЅР° РїРѕСЃР»Рµ РІРєР»СЋС‡РµРЅРёСЏ РіР»Р°РІРЅРѕР№ С„СѓРЅРєС†РёРё')
+		if imgui.Checkbox(u8'Автоускорение', checkboxes.autorun) then cfg.settings.autorun = checkboxes.autorun.v end
+		imgui.TextQuestion(u8'При нажатии на кнопку бега, персонаж переходит на быстрый бег')
+		if imgui.Checkbox(u8'Еда', checkboxes.eat) then cfg.settings.eat = checkboxes.eat.v end
+		imgui.TextQuestion(u8'Использовать чипсы: ALT + 5\nНастройка автоеды доступна после включения главной функции')
 		if checkboxes.eat.v then
-			imgui.Text(u8'	Р—Р°РґРµСЂР¶РєР°:')
+			imgui.Text(u8'	Задержка:')
 			imgui.SameLine()
 			imgui.PushItemWidth(75)
 			if imgui.InputInt("##edelay", ints.edelay) then cfg.settings.edelay = ints.edelay.v save() 
 				if ints.edelay.v > 0 then eatchips() end
 			end
 			imgui.SameLine()
-			imgui.Text(u8'РјРёРЅ.')
-			imgui.TextQuestion(u8'РџСЂРё РІРІРѕРґРµ 0 РІ РїРѕР»Рµ, С„СѓРЅРєС†РёСЏ Р±СѓРґРµС‚ РІС‹РєР»СЋС‡РµРЅР°')
+			imgui.Text(u8'мин.')
+			imgui.TextQuestion(u8'При вводе 0 в поле, функция будет выключена')
 			imgui.PopItemWidth() 
 		end
 		if imgui.Checkbox(u8'Z-Timer', checkboxes.ztimerstatus) then cfg.settings.ztimerstatus = checkboxes.ztimerstatus.v end
-		imgui.TextQuestion(u8'РџРѕСЃР»Рµ РІС‹РґР°С‡Рё РјРµС‚РєРё Z, РЅР°С‡РЅРµС‚СЃСЏ РѕС‚СЃС‡С‘С‚ 600 СЃРµРєСѓРЅРґ')
-		if imgui.Checkbox(u8'РђРІС‚Рѕ-РєР»РёРєРµСЂ', checkboxes.balloon) then cfg.settings.balloon = checkboxes.balloon.v end
-		imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: ALT + C (Р·Р°Р¶Р°С‚РёРµ)\nРљР»РёРєРµСЂ РґР»СЏ СЃР±РѕСЂРєРё С€Р°СЂР°/РІС‹РєР°РїС‹РІР°РЅРёСЏ РєР»Р°РґР° Рё С‚.Рї.')
-		if imgui.Checkbox(u8'Р‘РµСЃРєРѕРЅРµС‡РЅС‹Р№ Р±РµРі', checkboxes.infrun) then cfg.settings.infrun = checkboxes.infrun.v end
-		imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ\nРќРµ РїРѕР·РІРѕР»СЏРµС‚ СѓСЃС‚Р°С‚СЊ РїРµСЂСЃРѕРЅР°Р¶Сѓ РѕС‚ Р±РµРіР°')
+		imgui.TextQuestion(u8'После выдачи метки Z, начнется отсчёт 600 секунд')
+		if imgui.Checkbox(u8'Авто-кликер', checkboxes.balloon) then cfg.settings.balloon = checkboxes.balloon.v end
+		imgui.TextQuestion(u8'Активация: ALT + C (зажатие)\nКликер для сборки шара/выкапывания клада и т.п.')
+		if imgui.Checkbox(u8'Бесконечный бег', checkboxes.infrun) then cfg.settings.infrun = checkboxes.infrun.v end
+		imgui.TextQuestion(u8'Активация автоматическая\nНе позволяет устать персонажу от бега')
 		if imgui.Checkbox(u8'Skin Changer', checkboxes.vskin) then cfg.settings.vskin = checkboxes.vskin.v end 
-		imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /skin [ID]\nРЎРєРёРЅ РІРёРґРµРЅ С‚РѕР»СЊРєРѕ РІР°Рј\nРўР°Рє Р¶Рµ, РјС‹ РІР°Рј РЅРµ СЃРѕРІРµС‚СѓРµРј Р·Р»РѕСѓРїРѕС‚СЂРµР±Р»СЏС‚СЊ 92, 99 Рё 320+ СЃРєРёРЅР°РјРё,\nС‚Р°Рє РєР°Рє РѕРЅРё РґР°СЋС‚ РїСЂРµРёРјСѓС‰РµСЃС‚РІРѕ РІ Р±РµРіРµ')
-		if imgui.Checkbox(u8'РљСЂР°С„С‚ РѕСЂСѓР¶РёСЏ', checkboxes.gunmaker) then cfg.settings.gunmaker = checkboxes.gunmaker.v end
-		imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: /cg')
+		imgui.TextQuestion(u8'Активация: /skin [ID]\nСкин виден только вам\nТак же, мы вам не советуем злоупотреблять 92, 99 и 320+ скинами,\nтак как они дают преимущество в беге')
+		if imgui.Checkbox(u8'Крафт оружия', checkboxes.gunmaker) then cfg.settings.gunmaker = checkboxes.gunmaker.v end
+		imgui.TextQuestion(u8'Активация: /cg')
 		if checkboxes.gunmaker.v then
-			imgui.Text(u8'	РћСЂСѓР¶РёРµ: ')
+			imgui.Text(u8'	Оружие: ')
 			imgui.SameLine()
 			imgui.PushItemWidth(75)
-			if imgui.Combo(u8'##Р’С‹Р±РѕСЂ РіР°РЅР°', ints.gunmode, {u8'Deagle', u8'M4', u8'Shotgun'}, -1) then cfg.settings.gunmode = ints.gunmode.v save() imgui.PopItemWidth() end
-			imgui.Text(u8'	РџР°С‚СЂРѕРЅС‹:')
+			if imgui.Combo(u8'##Выбор гана', ints.gunmode, {u8'Deagle', u8'M4', u8'Shotgun'}, -1) then cfg.settings.gunmode = ints.gunmode.v save() imgui.PopItemWidth() end
+			imgui.Text(u8'	Патроны:')
 			imgui.SameLine()
 			imgui.PushItemWidth(75)
-			if imgui.InputInt("##РџР°С‚СЂРѕРЅС‹", ints.bullet, 0, 0) then cfg.settings.bullet = ints.bullet.v save() end
+			if imgui.InputInt("##Патроны", ints.bullet, 0, 0) then cfg.settings.bullet = ints.bullet.v save() end
 			if ints.gunmode.v == 0 then
 				ammo = ints.bullet.v * 2
 			elseif ints.gunmode.v == 1 then
@@ -1263,31 +1241,31 @@ function character()
 			elseif ints.gunmode.v == 2 then
 				ammo = ints.bullet.v * 10
 			end
-			imgui.Text(u8'	РЎС‚РѕРёРјРѕСЃС‚СЊ РєСЂР°С„С‚Р°: '..ammo..u8' РјР°С‚.')
+			imgui.Text(u8'	Стоимость крафта: '..ammo..u8' мат.')
 		end
 end
 
 function transport()
 	imgui.PushFont(fontsize)
-		imgui.CenterText(u8'РўСЂР°РЅСЃРїРѕСЂС‚')
+		imgui.CenterText(u8'Транспорт')
 	imgui.PopFont()
 	imgui.Separator()
 	if imgui.Checkbox(u8'AutoCar', checkboxes.autolock) then cfg.settings.autolock = checkboxes.autolock.v end
-	imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: СЃРµСЃС‚СЊ РІ РјР°С€РёРЅСѓ\nРђРІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ Р·Р°РєСЂС‹С‚РёРµ РґРІРµСЂРµР№, РїСЂРёСЃС‚РµРіРёРІР°РЅРёРµ Рё РІРєР»СЋС‡РµРЅРёРµ РґРІРёРіР°С‚РµР»СЏ')
-	if imgui.Checkbox(u8'РћС‚РєСЂС‹С‚СЊ/Р—Р°РєСЂС‹С‚СЊ РґРІРµСЂРё', checkboxes.lock) then cfg.settings.lock = checkboxes.lock.v end
-	imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: L, K (Р°СЂРµРЅРґ. С‚/СЃ)')
-	if imgui.Checkbox(u8'Р РµРјРєРѕРјРїР»РµРєС‚', checkboxes.rem) then cfg.settings.rem = checkboxes.rem.v end
-	imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЂРµРјРєРѕРјРїР»РµРєС‚: R')
-	if imgui.Checkbox(u8'РљР°РЅРёСЃС‚СЂР°', checkboxes.fill) then cfg.settings.fill = checkboxes.fill.v end
-	imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєР°РЅРёСЃС‚СЂСѓ: B')
-	if imgui.Checkbox(u8'РЎРїР°РІРЅ С‚СЂР°РЅСЃРїРѕСЂС‚Р°', checkboxes.spawn) then cfg.settings.spawn = checkboxes.spawn.v end
-	imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: РљРѕР»РµСЃРёРєРѕ РњС‹С€Рё (РЅР°Р¶Р°С‚РёРµ)')
-	if imgui.Checkbox(u8'РћС‚РєСЂС‹С‚РёРµ С€Р»Р°РіР±Р°СѓРјР°', checkboxes.open) then cfg.settings.open = checkboxes.open.v end
-	imgui.TextQuestion(u8'РћС‚РєСЂС‹С‚СЊ С€Р»Р°РіР±Р°СѓРј: O')
+	imgui.TextQuestion(u8'Активация: сесть в машину\nАвтоматическое закрытие дверей, пристегивание и включение двигателя')
+	if imgui.Checkbox(u8'Открыть/Закрыть двери', checkboxes.lock) then cfg.settings.lock = checkboxes.lock.v end
+	imgui.TextQuestion(u8'Активация: L, K (аренд. т/с)')
+	if imgui.Checkbox(u8'Ремкомплект', checkboxes.rem) then cfg.settings.rem = checkboxes.rem.v end
+	imgui.TextQuestion(u8'Использовать ремкомплект: R')
+	if imgui.Checkbox(u8'Канистра', checkboxes.fill) then cfg.settings.fill = checkboxes.fill.v end
+	imgui.TextQuestion(u8'Использовать канистру: B')
+	if imgui.Checkbox(u8'Спавн транспорта', checkboxes.spawn) then cfg.settings.spawn = checkboxes.spawn.v end
+	imgui.TextQuestion(u8'Использование: Колесико Мыши (нажатие)')
+	if imgui.Checkbox(u8'Открытие шлагбаума', checkboxes.open) then cfg.settings.open = checkboxes.open.v end
+	imgui.TextQuestion(u8'Открыть шлагбаум: O')
 	if imgui.Checkbox(u8'+W moto/bike', checkboxes.plusw) then cfg.settings.plusw = checkboxes.plusw.v end
-	imgui.TextQuestion(u8'РСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ: W (Р·Р°Р¶Р°С‚РёРµ)\nРљР»РёРєРµСЂ РґР»СЏ РІРµР»РѕСЃРёРїРµРґРѕРІ Рё РјРѕС‚РѕС†РёРєР»РѕРІ')
-	if imgui.Checkbox(u8'Р”СЂРёС„С‚', checkboxes.drift) then cfg.settings.drift = checkboxes.drift.v end
-	imgui.TextQuestion(u8'РђРєС‚РёРІР°С†РёСЏ: LSHIFT (Р·Р°Р¶Р°С‚РёРµ)\nРЈРїСЂР°РІР»РµРЅРёРµ Р·Р°РЅРѕСЃРѕРј')
+	imgui.TextQuestion(u8'Использование: W (зажатие)\nКликер для велосипедов и мотоциклов')
+	if imgui.Checkbox(u8'Дрифт', checkboxes.drift) then cfg.settings.drift = checkboxes.drift.v end
+	imgui.TextQuestion(u8'Активация: LSHIFT (зажатие)\nУправление заносом')
 end
 
 function osmusic()
@@ -1330,7 +1308,7 @@ function osmusic()
 						end
 				
 				imgui.SameLine()
-				imgui.Text(u8'Р“СЂРѕРјРєРѕСЃС‚СЊ:')
+				imgui.Text(u8'Громкость:')
 				imgui.SameLine()
 				imgui.PushItemWidth(70)
 				if imgui.InputInt('', volume) then
@@ -1354,18 +1332,18 @@ function jobhelperimgui()
         imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(220, 150), imgui.Cond.FirstUseEver)
         imgui.Begin('Bus Helper (OS v'..thisScript().version..')##bushelper', frames.bushelper, imgui.WindowFlags.NoResize)
-            imgui.Text(u8'Р”РµРЅРµР¶РЅС‹Р№ Р·Р°СЂР°Р±РѕС‚РѕРє: '..bhsalary..u8' СЂСѓР±.')
-            imgui.Text(u8'РљРѕР»РёС‡РµСЃС‚РІРѕ РѕСЃС‚Р°РЅРѕРІРѕРє: '..bhstop..u8' РѕСЃС‚.')
-            imgui.Text(u8'Р’С‹РїР°Р»Рѕ Р»Р°СЂС†РѕРІ: '..bhcases..u8' Р»Р°СЂ.')
-            imgui.Text(u8'Р’С‹РїР°Р»Рѕ С‡РµСЂС‚РµР¶РµР№: '..bhchert..u8' С‡РµСЂС‚.')
+            imgui.Text(u8'Денежный заработок: '..bhsalary..u8' руб.')
+            imgui.Text(u8'Количество остановок: '..bhstop..u8' ост.')
+            imgui.Text(u8'Выпало ларцов: '..bhcases..u8' лар.')
+            imgui.Text(u8'Выпало чертежей: '..bhchert..u8' черт.')
             --imgui.SetCursorPos(imgui.ImVec2(300, 382.5))
-            if imgui.Button(u8'РћС‡РёСЃС‚РёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Очистить статистику', imgui.ImVec2(205, 20)) then
                 bhsalary = 0
                 bhstop = 0
                 bhcases = 0
                 bhchert = 0
             end
-            if imgui.Button(u8'РЈР±СЂР°С‚СЊ РєСѓСЂСЃРѕСЂ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Убрать курсор', imgui.ImVec2(205, 20)) then
                 imgui.ShowCursor = false
             end
         imgui.End()
@@ -1374,20 +1352,20 @@ function jobhelperimgui()
         imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(220, 170), imgui.Cond.FirstUseEver)
         imgui.Begin('Mine Helper (OS v'..thisScript().version..')##minehelper', frames.minehelper, imgui.WindowFlags.NoResize)
-            imgui.Text(u8'РљР°РјРµРЅСЊ: '..mhstone..u8' С€С‚.')
-            imgui.Text(u8'РњРµС‚Р°Р»Р»: '..mhmetall..u8' С€С‚.')
-            imgui.Text(u8'Р‘СЂРѕРЅР·Р°: '..mhbronze..u8' С€С‚.')
-            imgui.Text(u8'РЎРµСЂРµР±СЂРѕ: '..mhsilver..u8' С€С‚.')
-            imgui.Text(u8'Р—РѕР»РѕС‚Рѕ: '..mhgold..u8' С€С‚.')
+            imgui.Text(u8'Камень: '..mhstone..u8' шт.')
+            imgui.Text(u8'Металл: '..mhmetall..u8' шт.')
+            imgui.Text(u8'Бронза: '..mhbronze..u8' шт.')
+            imgui.Text(u8'Серебро: '..mhsilver..u8' шт.')
+            imgui.Text(u8'Золото: '..mhgold..u8' шт.')
             --imgui.SetCursorPos(imgui.ImVec2(300, 382.5))
-            if imgui.Button(u8'РћС‡РёСЃС‚РёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Очистить статистику', imgui.ImVec2(205, 20)) then
                 mhstone = 0
                 mhmetall = 0
                 mhbronze = 0
                 mhsilver = 0
                 mhgold = 0
             end
-            if imgui.Button(u8'РЈР±СЂР°С‚СЊ РєСѓСЂСЃРѕСЂ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Убрать курсор', imgui.ImVec2(205, 20)) then
                 imgui.ShowCursor = false
             end
         imgui.End()
@@ -1396,14 +1374,14 @@ function jobhelperimgui()
         imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(220, 115), imgui.Cond.FirstUseEver)
         imgui.Begin('Farm Helper (OS v'..thisScript().version..')##farmhelper', frames.farmhelper, imgui.WindowFlags.NoResize)
-            imgui.Text(u8'Р›С‘РЅ: '..fhlyon..u8' С€С‚.')
-            imgui.Text(u8'РҐР»РѕРїРѕРє: '..fhhlopok..u8' С€С‚.')
+            imgui.Text(u8'Лён: '..fhlyon..u8' шт.')
+            imgui.Text(u8'Хлопок: '..fhhlopok..u8' шт.')
             --imgui.SetCursorPos(imgui.ImVec2(300, 382.5))
-            if imgui.Button(u8'РћС‡РёСЃС‚РёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Очистить статистику', imgui.ImVec2(205, 20)) then
                 fhlyon = 0
                 fhhlopok = 0
             end
-            if imgui.Button(u8'РЈР±СЂР°С‚СЊ РєСѓСЂСЃРѕСЂ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Убрать курсор', imgui.ImVec2(205, 20)) then
                 imgui.ShowCursor = false
             end
         imgui.End()
@@ -1412,15 +1390,15 @@ function jobhelperimgui()
         imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         imgui.SetNextWindowSize(imgui.ImVec2(220, 115), imgui.Cond.FirstUseEver)
         imgui.Begin('Fish Helper (OS v'..thisScript().version..')##fishhelper', frames.fishhelper, imgui.WindowFlags.NoResize)
-            imgui.Text(u8'Р—Р°СЂР°Р±РѕС‚РѕРє: '..fishsalary..u8' СЂСѓР±.')
-            imgui.TextQuestion(u8'Р—Р°СЂР°Р±РѕС‚РѕРє РїСЂРёР±Р»РёР·РёС‚РµР»РµРЅ, 1 СЂС‹Р±Р° = 15.000СЂСѓР±')
-            imgui.Text(u8'Р›Р°СЂС†С‹: '..fishcase..u8' С€С‚.')
+            imgui.Text(u8'Заработок: '..fishsalary..u8' руб.')
+            imgui.TextQuestion(u8'Заработок приблизителен, 1 рыба = 15.000руб')
+            imgui.Text(u8'Ларцы: '..fishcase..u8' шт.')
             --imgui.SetCursorPos(imgui.ImVec2(300, 382.5))
-            if imgui.Button(u8'РћС‡РёСЃС‚РёС‚СЊ СЃС‚Р°С‚РёСЃС‚РёРєСѓ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Очистить статистику', imgui.ImVec2(205, 20)) then
                 fishsalary = 0
                 fishcase = 0
             end
-            if imgui.Button(u8'РЈР±СЂР°С‚СЊ РєСѓСЂСЃРѕСЂ', imgui.ImVec2(205, 20)) then
+            if imgui.Button(u8'Убрать курсор', imgui.ImVec2(205, 20)) then
                 imgui.ShowCursor = false
             end
         imgui.End()
@@ -1447,7 +1425,7 @@ function imgui.BeforeDrawFrame()
 		fa_font = imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader/resource/fonts/fontawesome-webfont.ttf', 14.0, font_config, fa_glyph_ranges)
 	end
 	if fontsize == nil then
-        fontsize = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14) .. '\\trebucbd.ttf', 16.0, nil, imgui.GetIO().Fonts:GetGlyphRangesCyrillic()) -- РІРјРµСЃС‚Рѕ 30 Р»СЋР±РѕР№ РЅСѓР¶РЅС‹Р№ СЂР°Р·РјРµСЂ
+        fontsize = imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14) .. '\\trebucbd.ttf', 16.0, nil, imgui.GetIO().Fonts:GetGlyphRangesCyrillic()) -- вместо 30 любой нужный размер
     end
 end
 
@@ -1541,7 +1519,7 @@ function nsc_cmd( arg )
 			end
 		end
 	else
-		msg('Р¤СѓРЅРєС†РёСЏ Skin Changer РЅРµ РІРєР»СЋС‡РµРЅР° РІ РіР»Р°РІРЅРѕРј РјРµРЅСЋ.')
+		msg('Функция Skin Changer не включена в главном меню.')
 	end
 end
 
@@ -1757,7 +1735,7 @@ end
 function sampev.onShowDialog(id, style, title, button1, button0, text)
 	if checkboxes.mininghelper.v then
     if miningtool then
-	    if id == 269 or id == 0 and title:find('РћР±Р·РѕСЂ РІСЃРµС… РІРёРґРµРѕРєР°СЂС‚') or title:find('Р’С‹Р±РµСЂРёС‚Рµ РІРёРґРµРѕРєР°СЂС‚Сѓ') then
+	    if id == 269 or id == 0 and title:find('Обзор всех видеокарт') or title:find('Выберите видеокарту') then
 			local automining_btcoverall = 0
 			local automining_btcoverallph = 0
 			local automining_btcamountoverall = 0
@@ -1768,20 +1746,20 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
             end
 			
 			if dtext[1]:find('%(BTC%)') then
-			    dtext[1] = dtext[1]:gsub('%(BTC%)', '%1 | Р”Рѕ 9 BTC')
+			    dtext[1] = dtext[1]:gsub('%(BTC%)', '%1 | До 9 BTC')
 			end
 			
 			for d = 1, #dtext do
-				if dtext[d]:find('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{BEF781%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+%p%d+%%') then	-- РЎС‚Р°С‚СѓСЃ, СЂР°Р±РѕС‚Р°РµС‚ РёР»Рё РЅРµС‚
+				if dtext[d]:find('Полка%s+№%d+%s+|%s+%{BEF781%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+%d+%p%d+%%') then	-- Статус, работает или нет
 					automining_status = 1
 					automining_statustext = '{BEF781}'
 				else
 					automining_status = 0
 					automining_statustext = '{F78181}'
 				end
-				local automining_lvl = tonumber(dtext[d]:match('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+(%d+)%s+СѓСЂРѕРІРµРЅСЊ%s+%d+%p%d+%%')) -- РЈСЂРѕРІРµРЅСЊ РІРёРґСЋС…Рё
-				local automining_fillstatus = tonumber(dtext[d]:match('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+(%d+%p%d+)%%')) -- Р—Р°Р»РёС‚Рѕ РѕС…Р»Р°РґР° РІ РїСЂРѕС†РµРЅС‚Р°С…
-				local automining_btcamount = tonumber(dtext[d]:match('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+(%d+%p%d+)%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+%p%d+%%')) -- Р§РёСЃР»Рѕ Р±РёС‚РєРѕРІ СЃРµР№С‡Р°СЃ РІ РІРёРґСЋС…Рµ              						
+				local automining_lvl = tonumber(dtext[d]:match('Полка%s+№%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+(%d+)%s+уровень%s+%d+%p%d+%%')) -- Уровень видюхи
+				local automining_fillstatus = tonumber(dtext[d]:match('Полка%s+№%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+(%d+%p%d+)%%')) -- Залито охлада в процентах
+				local automining_btcamount = tonumber(dtext[d]:match('Полка%s+№%d+%s+|%s+%{......%}%W+%s+(%d+%p%d+)%s+BTC%s+%d+%s+уровень%s+%d+%p%d+%%')) -- Число битков сейчас в видюхе              						
 				if automining_lvl ~= nil and automining_fillstatus ~= nil and automining_btcamount ~= nil then					    						
 					automining_videocards = automining_videocards + 1
 					automining_btctimetofull = math.ceil((9 - automining_btcamount) / INFO[automining_lvl])
@@ -1794,47 +1772,47 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 						automining_btcamountinfo = false 
 					end
                     					
-					automining_fillstatushours = math.ceil(oxladtime * (automining_fillstatus / 100)) -- РќР° СЃРєРѕР»СЊРєРѕ С‡Р°СЃРѕРІ РѕС…Р»Р°РґР°
-					automining_fillstatusbtc = automining_fillstatushours * INFO[automining_lvl] -- РЎРєРѕР»СЊРєРѕ РІРёРґСЋС…Р° РµС‰Рµ РґР°СЃС‚ BTC
-					automining_btcoverall = automining_btcoverall + automining_fillstatusbtc -- РџРѕРґСЃС‡РµС‚ СЃРєРѕР»СЊРєРѕ РІСЃРµРіРѕ РґР°РґСѓС‚ РІСЃРµ РІРёРґСЋС…Рё
-					automining_btcamountoverall = automining_btcamountoverall + math.floor(automining_btcamount) -- РџРѕРґСЃС‡РµС‚ СЃРєРѕР»СЊРєРѕ РґРѕСЃС‚СѓРїРЅРѕ РґР»СЏ СЃРЅСЏС‚РёСЏ
+					automining_fillstatushours = math.ceil(oxladtime * (automining_fillstatus / 100)) -- На сколько часов охлада
+					automining_fillstatusbtc = automining_fillstatushours * INFO[automining_lvl] -- Сколько видюха еще даст BTC
+					automining_btcoverall = automining_btcoverall + automining_fillstatusbtc -- Подсчет сколько всего дадут все видюхи
+					automining_btcamountoverall = automining_btcamountoverall + math.floor(automining_btcamount) -- Подсчет сколько доступно для снятия
 					if automining_fillstatus > 0 and automining_status == 1 then
 						automining_btcoverallph = automining_btcoverallph + INFO[automining_lvl]
 					end
-					dtext[d] = dtext[d]:gsub('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+'..automining_lvl..'%s+СѓСЂРѕРІРµРЅСЊ', '%1 | '..automining_statustext..INFO[automining_lvl]..'/Р§Р°СЃ')
+					dtext[d] = dtext[d]:gsub('Полка%s+№%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+'..automining_lvl..'%s+уровень', '%1 | '..automining_statustext..INFO[automining_lvl]..'/Час')
 					if automining_fillstatus > 0 then
-						dtext[d] = dtext[d]:gsub('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+|%s+%{......%}%d+%p%d+/Р§Р°СЃ%s+'..automining_fillstatus..'%A+', '%1 '..tostring(automining_status and '{BEF781}' or '{F78181}')..'- [~'..automining_fillstatushours..' Р§Р°СЃ(РѕРІ)] {FFFFFF}|{81DAF5} [~'..string.format("%.1f", automining_fillstatusbtc)..' BTC]')
+						dtext[d] = dtext[d]:gsub('Полка%s+№%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+|%s+%{......%}%d+%p%d+/Час%s+'..automining_fillstatus..'%A+', '%1 '..tostring(automining_status and '{BEF781}' or '{F78181}')..'- [~'..automining_fillstatushours..' Час(ов)] {FFFFFF}|{81DAF5} [~'..string.format("%.1f", automining_fillstatusbtc)..' BTC]')
 					else
-						dtext[d] = dtext[d]:gsub('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+|%s+%{......%}%d+%p%d+/Р§Р°СЃ%s+'..automining_fillstatus..'%A+', '%1 {F78181}(!)')
+						dtext[d] = dtext[d]:gsub('Полка%s+№%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+|%s+%{......%}%d+%p%d+/Час%s+'..automining_fillstatus..'%A+', '%1 {F78181}(!)')
 					end
-					dtext[d] = dtext[d]:gsub('РџРѕР»РєР°%s+в„–%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC', '%1 '..tostring(automining_btcamountinfo and '{BEF781}вЂў' or '{F78181}вЂў')..' {ffffff}| '..automining_statustext..'~'..automining_btctimetofull..'С‡')
+					dtext[d] = dtext[d]:gsub('Полка%s+№%d+%s+|%s+%{......%}%W+%s+%d+%p%d+%s+BTC', '%1 '..tostring(automining_btcamountinfo and '{BEF781}•' or '{F78181}•')..' {ffffff}| '..automining_statustext..'~'..automining_btctimetofull..'ч')
 				end				
 			end
 			
-		if id == 269 and title:find('Р’С‹Р±РµСЂРёС‚Рµ РІРёРґРµРѕРєР°СЂС‚Сѓ') then
+		if id == 269 and title:find('Выберите видеокарту') then
             if worktread ~= nil then
                 worktread:terminate()
             end			
-		    local automining_fillstatus1 = tonumber(text:match('РџРѕР»РєР° в„–1 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+(%d+%p%d+)%A'))
-			local automining_fillstatus2 = tonumber(text:match('РџРѕР»РєР° в„–2 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+(%d+%p%d+)%A'))
-			local automining_fillstatus3 = tonumber(text:match('РџРѕР»РєР° в„–3 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+(%d+%p%d+)%A'))
-			local automining_fillstatus4 = tonumber(text:match('РџРѕР»РєР° в„–4 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+(%d+%p%d+)%A'))
+		    local automining_fillstatus1 = tonumber(text:match('Полка №1 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+(%d+%p%d+)%A'))
+			local automining_fillstatus2 = tonumber(text:match('Полка №2 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+(%d+%p%d+)%A'))
+			local automining_fillstatus3 = tonumber(text:match('Полка №3 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+(%d+%p%d+)%A'))
+			local automining_fillstatus4 = tonumber(text:match('Полка №4 |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+(%d+%p%d+)%A'))
 			
-			local automining_getbtcstatus1 = tonumber(text:match('РџРѕР»РєР° в„–1 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+.'))
-			local automining_getbtcstatus2 = tonumber(text:match('РџРѕР»РєР° в„–2 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+.'))
-			local automining_getbtcstatus3 = tonumber(text:match('РџРѕР»РєР° в„–3 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+.'))
-			local automining_getbtcstatus4 = tonumber(text:match('РџРѕР»РєР° в„–4 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+.'))				
+			local automining_getbtcstatus1 = tonumber(text:match('Полка №1 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+уровень%s+%d+.'))
+			local automining_getbtcstatus2 = tonumber(text:match('Полка №2 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+уровень%s+%d+.'))
+			local automining_getbtcstatus3 = tonumber(text:match('Полка №3 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+уровень%s+%d+.'))
+			local automining_getbtcstatus4 = tonumber(text:match('Полка №4 |%s+%{......%}%W+%s+(%d+)%p%d+%s+BTC%s+%d+%s+уровень%s+%d+.'))				
 			
 			for i = 1, 4 do
-			    local automining_lvl = tonumber(text:match('РџРѕР»РєР° в„–'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+(%d+)%s+СѓСЂРѕРІРµРЅСЊ%s+%d+.'))
-				local automining_fillstatus = tonumber(text:match('РџРѕР»РєР° в„–'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+(%d+%p%d+)%A'))
+			    local automining_lvl = tonumber(text:match('Полка №'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+(%d+)%s+уровень%s+%d+.'))
+				local automining_fillstatus = tonumber(text:match('Полка №'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+(%d+%p%d+)%A'))
 			    if automining_fillstatus ~= nil then
 					if automining_fillstatus > 0 and automining_lvl ~= nil then
 						automining_fillstatushours =  math.ceil(224 * (automining_fillstatus / 100))
-						text = text:gsub('РџРѕР»РєР° в„–'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ%s+%d+%p%d+%A', '%1 {BEF781}- [~'..automining_fillstatushours..' Р§Р°СЃ(РѕРІ)]')	
+						text = text:gsub('Полка №'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень%s+%d+%p%d+%A', '%1 {BEF781}- [~'..automining_fillstatushours..' Час(ов)]')	
 					end				
 					if automining_lvl > 0 then
-						text = text:gsub('РџРѕР»РєР° в„–'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+СѓСЂРѕРІРµРЅСЊ', '%1 | '..INFO[automining_lvl]..'/Р§Р°СЃ')
+						text = text:gsub('Полка №'..i..' |%s+%{......%}%W+%s+%d+%p%d+%s+BTC%s+%d+%s+уровень', '%1 | '..INFO[automining_lvl]..'/Час')
 					end
                 end				
 			end					
@@ -1844,7 +1822,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				    if automining_getbtcstatus1 ~= nil then
 						if automining_getbtcstatus1 < 1 then
 							automining_getbtc = 2
-						elseif text:find('РџРѕР»РєР° в„–1 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №1 | Свободна') then
 							automining_getbtc = 2
 						end
 					else
@@ -1855,7 +1833,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				    if automining_getbtcstatus2 ~= nil then
 						if automining_getbtcstatus2 < 1 then
 							automining_getbtc = 3
-						elseif text:find('РџРѕР»РєР° в„–2 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №2 | Свободна') then
 							automining_getbtc = 3
 						end
 					else
@@ -1866,7 +1844,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 					if automining_getbtcstatus3 ~= nil then
 						if automining_getbtcstatus3 < 1 then
 							automining_getbtc = 4
-						elseif text:find('РџРѕР»РєР° в„–3 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №3 | Свободна') then
 							automining_getbtc = 4
 						end
 					else
@@ -1877,11 +1855,11 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 					if automining_getbtcstatus4 ~= nil then
 						if automining_getbtcstatus4 < 1 then
 							automining_getbtc = 10
-							msg('Р’СЃСЏ РїСЂРёР±С‹Р»СЊ СѓР¶Рµ СЃРѕР±СЂР°РЅР°.')
+							msg('Вся прибыль уже собрана.')
 							worktread = lua_thread.create(PressAlt)
-						elseif text:find('РџРѕР»РєР° в„–4 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №4 | Свободна') then
 							automining_getbtc = 10
-							msg('Р’СЃСЏ РїСЂРёР±С‹Р»СЊ СѓР¶Рµ СЃРѕР±СЂР°РЅР°.')
+							msg('Вся прибыль уже собрана.')
 							worktread = lua_thread.create(PressAlt)
 						end
 					else
@@ -1894,34 +1872,34 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 			
 			if automining_startall == 1 or automining_startall == 2 or automining_startall == 3 or automining_startall == 4 then
 				if automining_startall == 1 then
-				    if text:find('РџРѕР»РєР° в„–1 | {BEF781}Р Р°Р±РѕС‚Р°РµС‚') then
+				    if text:find('Полка №1 | {BEF781}Работает') then
 						automining_startall = 2
-					elseif text:find('РџРѕР»РєР° в„–1 | РЎРІРѕР±РѕРґРЅР°') then
+					elseif text:find('Полка №1 | Свободна') then
 					    automining_startall = 2
 					end
 				end
 				if automining_startall == 2 then
-				    if text:find('РџРѕР»РєР° в„–2 | {BEF781}Р Р°Р±РѕС‚Р°РµС‚') then
+				    if text:find('Полка №2 | {BEF781}Работает') then
 				        automining_startall = 3
-					elseif text:find('РџРѕР»РєР° в„–2 | РЎРІРѕР±РѕРґРЅР°') then
+					elseif text:find('Полка №2 | Свободна') then
 					    automining_startall = 3
 					end
 				end
 				if automining_startall == 3 then
-				    if text:find('РџРѕР»РєР° в„–3 | {BEF781}Р Р°Р±РѕС‚Р°РµС‚') then
+				    if text:find('Полка №3 | {BEF781}Работает') then
 				        automining_startall = 4
-					elseif text:find('РџРѕР»РєР° в„–3 | РЎРІРѕР±РѕРґРЅР°') then
+					elseif text:find('Полка №3 | Свободна') then
 					    automining_startall = 4
 					end
 				end
 				if automining_startall == 4 then
-				    if text:find('РџРѕР»РєР° в„–4 | {BEF781}Р Р°Р±РѕС‚Р°РµС‚') then
+				    if text:find('Полка №4 | {BEF781}Работает') then
 				        automining_startall = 10
-						msg('Р’СЃРµ РІРёРґРµРѕРєР°СЂС‚С‹ СѓР¶Рµ Р·Р°РїСѓС‰РµРЅС‹.')
+						msg('Все видеокарты уже запущены.')
 					    worktread = lua_thread.create(PressAlt)
-					elseif text:find('РџРѕР»РєР° в„–4 | РЎРІРѕР±РѕРґРЅР°') then
+					elseif text:find('Полка №4 | Свободна') then
 					    automining_startall = 10
-					    msg('Р’СЃРµ РІРёРґРµРѕРєР°СЂС‚С‹ СѓР¶Рµ Р·Р°РїСѓС‰РµРЅС‹.')
+					    msg('Все видеокарты уже запущены.')
 					    worktread = lua_thread.create(PressAlt)
 					end
 				end			
@@ -1934,7 +1912,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				    if automining_fillstatus1 ~= nil then
 						if automining_fillstatus1 > 51 then
 							automining_fillall = 2
-						elseif text:find('РџРѕР»РєР° в„–1 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №1 | Свободна') then
 							automining_fillall = 2
 						end
 					else
@@ -1945,7 +1923,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				  if automining_fillstatus2 ~= nil then
 						if automining_fillstatus2 > 51 then
 							automining_fillall = 3
-						elseif text:find('РџРѕР»РєР° в„–2 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №2 | Свободна') then
 							automining_fillall = 3
 						end
 					else
@@ -1956,7 +1934,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 					if automining_fillstatus3 ~= nil then
 						if automining_fillstatus3 > 51 then
 							automining_fillall = 4
-						elseif text:find('РџРѕР»РєР° в„–3 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №3 | Свободна') then
 							automining_fillall = 4
 						end
 					else
@@ -1967,11 +1945,11 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 					if automining_fillstatus4 ~= nil then
 						if automining_fillstatus4 > 75 then
 							automining_fillall = 10
-							msg('Р’ РІРёРґРµРѕРєР°СЂС‚Р°С… Р±РѕР»РµРµ 75% Р¶РёРґРєРѕСЃС‚Рё.')
+							msg('В видеокартах более 75% жидкости.')
 							worktread = lua_thread.create(PressAlt)
-						elseif text:find('РџРѕР»РєР° в„–4 | РЎРІРѕР±РѕРґРЅР°') then
+						elseif text:find('Полка №4 | Свободна') then
 							automining_fillall = 10
-							msg('Р’ РІРёРґРµРѕРєР°СЂС‚Р°С… Р±РѕР»РµРµ 75% Р¶РёРґРєРѕСЃС‚Рё.')
+							msg('В видеокартах более 75% жидкости.')
 							worktread = lua_thread.create(PressAlt)
 						end
 					else
@@ -1986,19 +1964,19 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 		text = table.concat(dtext,'\n')
         dtext = {}
         text = text .. '\n' .. ' '
-		text = text .. '\n' .. color .. 'РРЅС„РѕСЂРјР°С†РёСЏ\t' .. color .. 'Р”РѕСЃС‚СѓРїРЅРѕ СЃРЅСЏС‚СЊ\t' .. color .. 'РџСЂРёР±С‹Р»СЊ РІ С‡Р°СЃ\t' .. color .. 'РџСЂРёР±С‹Р»СЊ РїСЂРѕРіРЅРѕР·РёСЂСѓРµРјР°СЏ'
-		text = text .. '\n' .. '{FFFFFF}Р’СЃРµРіРѕ: '..automining_videocards..' | {FFFFFF}Р Р°Р±РѕС‚Р°СЋС‚: '..automining_videocardswork..'\t{FFFFFF}'..string.format("%.0f", automining_btcamountoverall)..' BTC\t{FFFFFF}'..automining_btcoverallph..' {FFFFFF}BTC\t{FFFFFF}'..string.format("%.1f", automining_btcoverall)..' {FFFFFF}BTC' 
-			if title:find('Р’С‹Р±РµСЂРёС‚Рµ РІРёРґРµРѕРєР°СЂС‚Сѓ') then	
-				if text:find('РџРѕР»РєР° в„–1 | РЎРІРѕР±РѕРґРЅР°') and text:find('РџРѕР»РєР° в„–2 | РЎРІРѕР±РѕРґРЅР°') and text:find('РџРѕР»РєР° в„–3 | РЎРІРѕР±РѕРґРЅР°') and text:find('РџРѕР»РєР° в„–4 | РЎРІРѕР±РѕРґРЅР°') then
+		text = text .. '\n' .. color .. 'Информация\t' .. color .. 'Доступно снять\t' .. color .. 'Прибыль в час\t' .. color .. 'Прибыль прогнозируемая'
+		text = text .. '\n' .. '{FFFFFF}Всего: '..automining_videocards..' | {FFFFFF}Работают: '..automining_videocardswork..'\t{FFFFFF}'..string.format("%.0f", automining_btcamountoverall)..' BTC\t{FFFFFF}'..automining_btcoverallph..' {FFFFFF}BTC\t{FFFFFF}'..string.format("%.1f", automining_btcoverall)..' {FFFFFF}BTC' 
+			if title:find('Выберите видеокарту') then	
+				if text:find('Полка №1 | Свободна') and text:find('Полка №2 | Свободна') and text:find('Полка №3 | Свободна') and text:find('Полка №4 | Свободна') then
 					text = text .. '\n' .. ' '
-					text = text .. '\n' .. color .. '>> {FFFFFF}РќР° РїРѕР»РєР°С… РЅРµС‚ РІРёРґРµРѕРєР°СЂС‚, Р·Р°Р±СЂР°С‚СЊ РїСЂРёР±С‹Р»СЊ РЅРµ РїРѕР»СѓС‡РёС‚СЃСЏ'
-					text = text .. '\n' .. color .. '>> {FFFFFF}РќР° РїРѕР»РєР°С… РЅРµС‚ РІРёРґРµРѕРєР°СЂС‚, РІРєР»СЋС‡РёС‚СЊ РІРёРґРµРѕРєР°СЂС‚С‹ РЅРµ РїРѕР»СѓС‡РёС‚СЃСЏ'
-					text = text .. '\n' .. color .. '>> {FFFFFF}РќР° РїРѕР»РєР°С… РЅРµС‚ РІРёРґРµРѕРєР°СЂС‚, Р·Р°Р»РёС‚СЊ РѕС…Р»Р°Р¶РґР°СЋС‰СѓСЋ Р¶РёРґРєРѕСЃС‚СЊ РЅРµ РїРѕР»СѓС‡РёС‚СЃСЏ'
+					text = text .. '\n' .. color .. '>> {FFFFFF}На полках нет видеокарт, забрать прибыль не получится'
+					text = text .. '\n' .. color .. '>> {FFFFFF}На полках нет видеокарт, включить видеокарты не получится'
+					text = text .. '\n' .. color .. '>> {FFFFFF}На полках нет видеокарт, залить охлаждающую жидкость не получится'
 				else
 					text = text .. '\n' .. ' '
-					text = text .. '\n' .. color .. '>> {FFFFFF}РЎРѕР±СЂР°С‚СЊ РїСЂРёР±С‹Р»СЊ'
-					text = text .. '\n' .. color .. '>> {FFFFFF}Р—Р°РїСѓСЃС‚РёС‚СЊ РІРёРґРµРѕРєР°СЂС‚С‹'
-					text = text .. '\n' .. color .. '>> {FFFFFF}Р—Р°Р»РёС‚СЊ РѕС…Р»Р°Р¶РґР°СЋС‰СѓСЋ Р¶РёРґРєРѕСЃС‚СЊ (РїРѕ 1 С€С‚.)'
+					text = text .. '\n' .. color .. '>> {FFFFFF}Собрать прибыль'
+					text = text .. '\n' .. color .. '>> {FFFFFF}Запустить видеокарты'
+					text = text .. '\n' .. color .. '>> {FFFFFF}Залить охлаждающую жидкость (по 1 шт.)'
 				end
 			end
 		automining_btcoverall = 0
@@ -2008,15 +1986,15 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 		
 		if id == 270 then	    
 		    if automining_getbtc == 1 or automining_getbtc == 2 or automining_getbtc == 3 or automining_getbtc == 4 then
-				if title:find('РЎС‚РѕР№РєР° в„–%d+%s+| РџРѕР»РєР° в„–'..automining_getbtc..'') then	
-					local automining_btcamount = tonumber(text:match('Р—Р°Р±СЂР°С‚СЊ РїСЂРёР±С‹Р»СЊ %((%d+).%d+ '))
+				if title:find('Стойка №%d+%s+| Полка №'..automining_getbtc..'') then	
+					local automining_btcamount = tonumber(text:match('Забрать прибыль %((%d+).%d+ '))
 					if automining_btcamount ~= 0 then
-						sampSendDialogResponse(270,1,1,nil) -- Р”Р°
+						sampSendDialogResponse(270,1,1,nil) -- Да
 					else
 						automining_getbtc = automining_getbtc + 1
 						sampSendDialogResponse(270,0,nil,nil)
 						if automining_getbtc == 5 then
-							msg('РџСЂРёР±С‹Р»СЊ РґРѕР±Р°РІР»РµРЅР° РІР°Рј РІ РёРЅРІРµРЅС‚Р°СЂСЊ.')
+							msg('Прибыль добавлена вам в инвентарь.')
 							automining_getbtc = 10
 						end
 					end
@@ -2027,7 +2005,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 			end
 			
 		    if automining_startall == 1 or automining_startall == 2 or automining_startall == 3 or automining_startall == 4 then
-				if text:find('Р—Р°РїСѓСЃС‚РёС‚СЊ РІРёРґРµРѕРєР°СЂС‚Сѓ') and title:find('РЎС‚РѕР№РєР° в„–%d+%s+| РџРѕР»РєР° в„–'..automining_startall..'') then
+				if text:find('Запустить видеокарту') and title:find('Стойка №%d+%s+| Полка №'..automining_startall..'') then
 				    sampSendDialogResponse(270,1,0,nil)
 				    automining_startall = automining_startall + 1
 				    sampSendDialogResponse(270,0,nil,nil)
@@ -2035,13 +2013,13 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				    sampSendDialogResponse(270,0,nil,nil)
 				end
 				if automining_startall == 5 then
-					msg('Р’СЃРµ РІРёРґРµРѕРєР°СЂС‚С‹ Р·Р°РїСѓС‰РµРЅС‹.')
+					msg('Все видеокарты запущены.')
 					automining_startall = 10
 				end
 			end
 
 		    if automining_fillall == 1 or automining_fillall == 2 or automining_fillall == 3 or automining_fillall == 4 then
-				if title:find('РЎС‚РѕР№РєР° в„–%d+%s+| РџРѕР»РєР° в„–'..automining_fillall..'') then
+				if title:find('Стойка №%d+%s+| Полка №'..automining_fillall..'') then
 				    sampSendDialogResponse(270,1,2,nil)
 				    automining_fillall = automining_fillall + 1
 				    worktread = lua_thread.create(PressAlt)
@@ -2049,7 +2027,7 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 				    worktread = lua_thread.create(PressAlt)
 				end
 				if automining_filltall == 5 then
-					msg('Р–РёРґРєРѕСЃС‚СЊ СѓСЃРїРµС€РЅРѕ Р·Р°Р»РёС‚Р°.')
+					msg('Жидкость успешно залита.')
 					sampSendDialogResponse(270,0,nil,nil)
 					automining_startall = 10
 					worktread = lua_thread.create(PressAlt)
@@ -2057,13 +2035,13 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 			end
 	    end
 		
-	    if id == 271 and title:find('Р’С‹РІРѕРґ РїСЂРёР±С‹Р»Рё РІРёРґРµРѕРєР°СЂС‚С‹') then
+	    if id == 271 and title:find('Вывод прибыли видеокарты') then
      		if automining_getbtc == 1 or automining_getbtc == 2 or automining_getbtc == 3 or automining_getbtc == 4 then
 				automining_getbtc = automining_getbtc + 1
-				sampSendDialogResponse(271,1,nil,nil) -- Р”Р°
+				sampSendDialogResponse(271,1,nil,nil) -- Да
 				worktread = lua_thread.create(PressAlt)
 					if automining_getbtc == 5 then
-						msg('РџСЂРёР±С‹Р»СЊ РґРѕР±Р°РІР»РµРЅР° РІР°Рј РІ РёРЅРІРµРЅС‚Р°СЂСЊ.')
+						msg('Прибыль добавлена вам в инвентарь.')
 						automining_getbtc = 10
 					end
 				return false
@@ -2073,9 +2051,9 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 	end
 	if checkboxes.cardlogin.v and id == 782 then sampSendDialogResponse(782, 1, -1, ints.logincard.v) end
 	if checkboxes.ztimerstatus.v then
-		if id == 0 and title:find('Р’РЅРёРјР°РЅРёРµ!') then
+		if id == 0 and title:find('Внимание!') then
 				lua_thread.create(function() 
-				msg('Р’С‹ РїРѕРјРµС‡РµРЅС‹ РєР°Рє РѕРїР°СЃРЅС‹Р№ РїСЂРµСЃС‚СѓРїРЅРёРє, РѕС‚СЃС‡С‘С‚ 10 РјРёРЅСѓС‚ РїРѕС€С‘Р».')
+				msg('Вы помечены как опасный преступник, отсчёт 10 минут пошёл.')
 				ztimer = 600
 					while ztimer > 0 do
 						printStringNow(u8'Z-Timer: ~r~~h~'..ztimer..' ~w~sec.', 1500) 
@@ -2087,9 +2065,9 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 		end
 	end
 	if checkboxes.autoprize.v then
-		if id == 519 and text:find('В»В» РЎР»РµРґСѓСЋС‰Р°СЏ СЃС‚СЂР°РЅРёС†Р°') then 
+		if id == 519 and text:find('»» Следующая страница') then 
 			sampSendDialogResponse(519, 1, 1, "")
-		elseif id == 519 and not text:find('В»В» РЎР»РµРґСѓСЋС‰Р°СЏ СЃС‚СЂР°РЅРёС†Р°') then 
+		elseif id == 519 and not text:find('»» Следующая страница') then 
 			sampSendDialogResponse(519, 1, 0, "")
 			return false
 		end
@@ -2098,11 +2076,11 @@ function sampev.onShowDialog(id, style, title, button1, button0, text)
 		sampSendDialogResponse(520, 1, -1, "")
 	end
 	if checkboxes.autopay.v then 
-		if id == 756 then  -- РЎРїРёСЃРѕРє Р±РёР·РѕРІ
+		if id == 756 then  -- Список бизов
 			sampSendDialogResponse(756, 1, 0, "")
 		end
 		
-		if id == 672 or id == 671 then -- РљРЅРѕРїРєР° РѕРїР»Р°С‚С‹
+		if id == 672 or id == 671 then -- Кнопка оплаты
 			sampSendDialogResponse(id, 1, -1, nil) 
 			sampCloseCurrentDialogWithButton(1)
 			return false
@@ -2123,17 +2101,17 @@ function sampev.onSendDialogResponse(id, button, list, input)
 	  if id == 269 and list == 8 and button == 1 then
 		    automining_getbtc = 1
 	        worktread = lua_thread.create(PressAlt)
-			msg('РЎР±РѕСЂ РїСЂРёР±С‹Р»Рё, РѕР¶РёРґР°Р№С‚Рµ...')
+			msg('Сбор прибыли, ожидайте...')
 		end
 		if id == 269 and list == 9 and button == 1 then
 		    automining_startall = 1
 	        worktread = lua_thread.create(PressAlt)
-			msg('Р’РёРґРµРѕРєР°СЂС‚С‹ Р·Р°РїСѓСЃРєР°СЋС‚СЃСЏ, РѕР¶РёРґР°Р№С‚Рµ...')
+			msg('Видеокарты запускаются, ожидайте...')
 		end
 		if id == 269 and list == 10 and button == 1 then
 		    automining_fillall = 1
 	        worktread = lua_thread.create(PressAlt)
-			msg('РЎРёСЃС‚РµРјР° РѕС…Р»Р°Р¶РґРµРЅРёСЏ РІРѕСЃРїРѕР»РЅСЏРµС‚СЃСЏ РїРѕ 50%, РѕР¶РёРґР°Р№С‚Рµ...')
+			msg('Система охлаждения восполняется по 50%, ожидайте...')
 		end	
 	end
 end
@@ -2151,7 +2129,7 @@ function PressAlt()
 end
 
 function sampev.onServerMessage(color, text)
-		if checkboxes.drugstimer.v and text:find('Р—РґРѕСЂРѕРІСЊРµ РїРѕРїРѕР»РЅРµРЅРѕ РЅР°') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+		if checkboxes.drugstimer.v and text:find('Здоровье пополнено на') and not text:find('говорит:') then
 				lua_thread.create(function() 
 				printStringNow(u8'DRUGS: Timer started.', 5000)
 				wait(20000)
@@ -2167,7 +2145,7 @@ function sampev.onServerMessage(color, text)
 		if checkboxes.armortimer.v then
 			local armourlvl = sampGetPlayerArmor(id)
 			local nickname = sampGetPlayerNickname(id)
-			if text:find('РЅР°РґРµР» Р±СЂРѕРЅРµР¶РёР»РµС‚') and armourlvl == 100 and not text:find('РіРѕРІРѕСЂРёС‚:') then
+			if text:find('надел бронежилет') and armourlvl == 100 and not text:find('говорит:') then
 				lua_thread.create(function()
 					printStringNow(u8'ARM: Timer started.', 5000)
 					wait(20000)
@@ -2181,7 +2159,7 @@ function sampev.onServerMessage(color, text)
 				end)
 			end
 		end
-		if checkboxes.antilomka.v and text:find('РЈ РІР°СЃ РЅР°С‡Р°Р»Р°СЃСЊ Р»РѕРјРєР°') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+		if checkboxes.antilomka.v and text:find('У вас началась ломка') and not text:find('говорит:') then
 			send('/usedrugs 1')
 		end
 		bushelpermsg()
@@ -2191,60 +2169,60 @@ end
 
 function sampev.onServerMessage(color, text) --jobhelper
 	if checkboxes.bus.v then
-			if text:find('^РџСЂРµРјРёСЏ Р·Р° РїРѕСЃР°РґРєСѓ РїР°СЃСЃР°Р¶РёСЂРѕРІ:') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+			if text:find('^Премия за посадку пассажиров:') and not text:find('говорит:') then
 	        local premia = text:match('(%d+)')
 	        bhsalary = bhsalary + premia
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р›Р°СЂРµС† РІРѕРґРёС‚РµР»СЏ Р°РІС‚РѕР±СѓСЃР°". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    elseif text:find('Вам добавлено: предмет "Ларец водителя автобуса". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        bhcases = bhcases + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РљСѓСЃРѕРє С‡РµСЂС‚РµР¶Р°". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    elseif text:find('Вам добавлено: предмет "Кусок чертежа". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        bhchert = bhchert + 1
-	    elseif text:find('РђРІС‚РѕР±СѓСЃ РїРѕ РјР°СЂС€СЂСѓС‚Сѓ') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    elseif text:find('Автобус по маршруту') and not text:find('говорит:') then
 	        bhstop = bhstop + 1
 	    end
 	end
 	if checkboxes.mine.v then
-			if text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РљР°РјРµРЅСЊ". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+			if text:find('Вам добавлено: предмет "Камень". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        mhstone = mhstone + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РљР°РјРµРЅСЊ" +%D(%d+) С€С‚+%D. Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
-	    		mhstone = mhstone + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('Вам добавлено: предмет "Камень" +%D(%d+) шт+%D. Чтобы открыть инвентарь,') and not text:find('говорит:') then
+	    		mhstone = mhstone + tonumber(text:match("(%d+) шт"))  
 	    end
-	    if text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РњРµС‚Р°Р»Р»". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    if text:find('Вам добавлено: предмет "Металл". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        mhmetall = mhmetall + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РњРµС‚Р°Р»Р»" +%D(%d+) С€С‚+%D. Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
-	    		mhmetall = mhmetall + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('Вам добавлено: предмет "Металл" +%D(%d+) шт+%D. Чтобы открыть инвентарь,') and not text:find('говорит:') then
+	    		mhmetall = mhmetall + tonumber(text:match("(%d+) шт"))  
 	    end
-	    if text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р‘СЂРѕРЅР·Р°". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    if text:find('Вам добавлено: предмет "Бронза". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        mhmetall = mhbronze + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р‘СЂРѕРЅР·Р°" +%D(%d+) С€С‚+%D. Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
-	    		mhbronze = mhbronze + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('Вам добавлено: предмет "Бронза" +%D(%d+) шт+%D. Чтобы открыть инвентарь,') and not text:find('говорит:') then
+	    		mhbronze = mhbronze + tonumber(text:match("(%d+) шт"))  
 	    end
-	    if text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РЎРµСЂРµР±СЂРѕ". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    if text:find('Вам добавлено: предмет "Серебро". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        mhmetall = mhsilver + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РЎРµСЂРµР±СЂРѕ" +%D(%d+) С€С‚+%D. Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
-	    		mhmetall = mhsilver + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('Вам добавлено: предмет "Серебро" +%D(%d+) шт+%D. Чтобы открыть инвентарь,') and not text:find('говорит:') then
+	    		mhmetall = mhsilver + tonumber(text:match("(%d+) шт"))  
 	    end
-	    if text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р—РѕР»РѕС‚Рѕ". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    if text:find('Вам добавлено: предмет "Золото". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        mhgold = mhgold + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р—РѕР»РѕС‚Рѕ" +%D(%d+) С€С‚+%D. Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
-	    		mhgold = mhgold + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('Вам добавлено: предмет "Золото" +%D(%d+) шт+%D. Чтобы открыть инвентарь,') and not text:find('говорит:') then
+	    		mhgold = mhgold + tonumber(text:match("(%d+) шт"))  
 	    end
 	  end
 	  if checkboxes.farm.v then
-			if text:find('^Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р›С‘РЅ". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') then
+			if text:find('^Вам добавлено: предмет "Лён". Чтобы открыть инвентарь,') then
 	        fhlyon = fhlyon + 1
-	    elseif text:find('^Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚Р° "Р›С‘РЅ" %((%d+) С€С‚%). Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') or text:find('^Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚РѕРІ "Р›С‘РЅ" %((%d+) С€С‚%). Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') then
-	    		fhlyon = fhlyon + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('^Вам добавлено: предмета "Лён" %((%d+) шт%). Чтобы открыть инвентарь,') or text:find('^Вам добавлено: предметов "Лён" %((%d+) шт%). Чтобы открыть инвентарь,') then
+	    		fhlyon = fhlyon + tonumber(text:match("(%d+) шт"))  
 	    end
-	    if text:find('^Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "РҐР»РѕРїРѕРє". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    if text:find('^Вам добавлено: предмет "Хлопок". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        fhhlopok = fhhlopok + 1
-	    elseif text:find('^Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚Р° "РҐР»РѕРїРѕРє" %((%d+) С€С‚%). Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') or text:find('^Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚РѕРІ "РҐР»РѕРїРѕРє" %((%d+) С€С‚%). Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') then
-	    		fhhlopok = fhhlopok + tonumber(text:match("(%d+) С€С‚"))  
+	    elseif text:find('^Вам добавлено: предмета "Хлопок" %((%d+) шт%). Чтобы открыть инвентарь,') or text:find('^Вам добавлено: предметов "Хлопок" %((%d+) шт%). Чтобы открыть инвентарь,') then
+	    		fhhlopok = fhhlopok + tonumber(text:match("(%d+) шт"))  
 	  	end
 		end
 		if checkboxes.fish.v then
-			if text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р›Р°СЂРµС† СЂС‹Р±РѕР»РѕРІР°". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+			if text:find('Вам добавлено: предмет "Ларец рыболова". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	        fishcase = fishcase + 1
-	    elseif text:find('Р’Р°Рј РґРѕР±Р°РІР»РµРЅРѕ: РїСЂРµРґРјРµС‚ "Р С‹Р±Р° (%A+)". Р§С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ РёРЅРІРµРЅС‚Р°СЂСЊ,') and not text:find('РіРѕРІРѕСЂРёС‚:') then
+	    elseif text:find('Вам добавлено: предмет "Рыба (%A+)". Чтобы открыть инвентарь,') and not text:find('говорит:') then
 	    		fishsalary = fishsalary + 15000 
 	    end
 	end
@@ -2260,7 +2238,7 @@ function eatchips()
 end
 
 keyboards = {
-	{ -- Р‘РµР· NumPad
+	{ -- Без NumPad
 		{
 			{'Esc', 0x1B},
 			{'F1', 0x70},
@@ -2357,7 +2335,7 @@ keyboards = {
 			{'>', 0x27},
 		}
 	},
-	{ -- РўРѕР»СЊРєРѕ С†РёС„СЂС‹
+	{ -- Только цифры
 		{
 			{'1', 0x31},
 			{'2', 0x32},
@@ -2486,7 +2464,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 1 then -- Р·РµР»РµРЅР°СЏ
+	elseif theme == 1 then -- зеленая
 		local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2531,7 +2509,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 2 then -- СЃРёРЅСЏСЏ
+	elseif theme == 2 then -- синяя
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2576,7 +2554,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 3 then -- СЃР°Р»Р°С‚РѕРІР°СЏ
+	elseif theme == 3 then -- салатовая
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2621,7 +2599,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 4 then -- РѕСЂР°РЅР¶РµРІР°СЏ
+	elseif theme == 4 then -- оранжевая
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2666,7 +2644,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 5 then -- С„РёРѕР»РµС‚РѕРІР°СЏ
+	elseif theme == 5 then -- фиолетовая
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2711,7 +2689,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 6 then -- С‚РѕРєСЃРёС‡РЅР°СЏ
+	elseif theme == 6 then -- токсичная
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2756,7 +2734,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 7 then -- СЂРѕР·РѕРІР°СЏ
+	elseif theme == 7 then -- розовая
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2801,7 +2779,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 8 then -- РєРѕСЂРёС‡РЅРµРІР°СЏ
+	elseif theme == 8 then -- коричневая
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2846,7 +2824,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 9 then -- РЎРµСЂР°СЏ
+	elseif theme == 9 then -- Серая
 	  local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2891,7 +2869,7 @@ function themeSettings(theme)
 		colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
 		colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
 		colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-	elseif theme == 10 then -- РљР°СЃС‚РѕРјРЅР°СЏ
+	elseif theme == 10 then -- Кастомная
 	  	local style = imgui.GetStyle()
 		local colors = style.Colors
 		local clr = imgui.Col
@@ -2960,20 +2938,20 @@ function autoupdate(json_url, prefix, url)
               lua_thread.create(function(prefix)
                 local dlstatus = require('moonloader').download_status
                 local color = -1
-                msg('РћР±РЅР°СЂСѓР¶РµРЅРѕ РѕР±РЅРѕРІР»РµРЅРёРµ. РџС‹С‚Р°СЋСЃСЊ РѕР±РЅРѕРІРёС‚СЊСЃСЏ c '..thisScript().version..' РЅР° '..updateversion)
+                msg('Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion)
                 wait(0)
                 downloadUrlToFile(updatelink, thisScript().path,
                   function(id3, status1, p13, p23)
                     if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
-                      print(string.format('Р—Р°РіСЂСѓР¶РµРЅРѕ %d РёР· %d.', p13, p23))
+                      print(string.format('Загружено %d из %d.', p13, p23))
                     elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-                      msg('РЎРєСЂРёРїС‚ СѓСЃРїРµС€РЅРѕ РѕР±РЅРѕРІРёР»СЃСЏ РґРѕ РІРµСЂСЃРёРё '..updateversion..'.')
+                      msg('Скрипт успешно обновился до версии '..updateversion..'.')
                       goupdatestatus = true
                       lua_thread.create(function() wait(500) thisScript():reload() end)
                     end
                     if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
                       if goupdatestatus == nil then
-                        msg('РќРµ РїРѕР»СѓС‡Р°РµС‚СЃСЏ РѕР±РЅРѕРІРёС‚СЊСЃСЏ, Р·Р°РїСѓСЃРєР°СЋ СЃС‚Р°СЂСѓСЋ РІРµСЂСЃРёСЋ ('..thisScript().version..')')
+                        msg('Не получается обновиться, запускаю старую версию ('..thisScript().version..')')
                         imgui.ShowCursor = true
                         update = false
                       end
@@ -2984,12 +2962,12 @@ function autoupdate(json_url, prefix, url)
               )
             else
               update = false
-              msg('РћР±РЅРѕРІР»РµРЅРёРµ РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ.')
+              msg('Обновление не требуется.')
               imgui.ShowCursor = true
             end
           end
         else
-          print('v'..thisScript().version..': РќРµ РјРѕРіСѓ РїСЂРѕРІРµСЂРёС‚СЊ РѕР±РЅРѕРІР»РµРЅРёРµ. РЎРјРёСЂРёС‚РµСЃСЊ РёР»Рё РїСЂРѕРІРµСЂСЊС‚Рµ СЃР°РјРѕСЃС‚РѕСЏС‚РµР»СЊРЅРѕ РЅР° '..url)
+          print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..url)
           update = false
         end
       end
