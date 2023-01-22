@@ -16,13 +16,12 @@
 		оптимизация кода + буст производительности [ 1/10  | ? ] ,
 		средние цены для ЦР (by cosmo) [ none ] ,
 		сепаратор денег для лавки ЦР [ none ] ,
-		изменить перемещение инфоборда на ЛКМ [ wait ] ,
 		сделать чатсайз (строка 890) [ wait ] ,
 ]]
 
 -- script
 script_name('OS Helper')
-script_version('1.5.4 alpha')
+script_version('1.5.5 alpha')
 script_author('OS Production') 
 
 -- libraries
@@ -328,6 +327,9 @@ local RenderText = create()
 		RenderText.size(11)
 font = renderCreateFont('Bold', 30, 5)
 
+
+local colorslist = imgui.CreateTextureFromFile(getWorkingDirectory()..'/OS Helper/colors.png')
+
 local posX, posY = cfg.infopanel.x, cfg.infopanel.y
 local onlineposX, onlineposY = cfg.onlinepanel.x, cfg.onlinepanel.y
 local color = cfg.settings.color
@@ -575,6 +577,7 @@ function main()
 		sampRegisterChatCommand('cc', function() 
 			clearchat() 
 		end)
+		lua_thread.create(autoSave)
 while true do
     wait(0)
 		-----------------------------------------------------------------------------------
@@ -690,7 +693,7 @@ while true do
       		setTimeOfDay(ints.time.v, 0)
       		forceWeatherNow(ints.weather.v)
     	end
-        inicfg.save(cfg, 'OSHelper.ini')
+   --     inicfg.save(cfg, 'OSHelper.ini')
         if cfg.settings.cheatcode == '' then cfg.settings.cheatcode = 'oh' buffers.cheatcode = imgui.ImBuffer(tostring(cfg.settings.cheatcode), 256) end
     	if ints.active.v == 1 and testCheat(cfg.settings.cheatcode) then frames.window.v = not frames.window.v end
 		if checkboxes.drift.v then
@@ -806,7 +809,6 @@ while true do
 		-- [ HP CAR ] --
 	end -- cancel
 end
-
 -- imgui
 local volume = imgui.ImInt(5)
 function imgui.OnDrawFrame()
@@ -888,15 +890,15 @@ function imgui.OnDrawFrame()
                         imgui.Text(u8'/biz - /bizinfo\n/car [id] - /fixmycar\n/fh [id] - /findihouse\n/fbiz [id] - /findibiz\n/urc - /unrentcar\n/fin [id] [id biz] - /showbizinfo\n/ss - /setspawn')
                     imgui.EndTooltip()
                 end
-				--[[imgui.Text(u8'	Количество строк в чате:') imgui.SameLine()
+			--[[	imgui.Text(u8'	Количество строк в чате:') imgui.SameLine()
 				imgui.PushItemWidth(75) 
 				if imgui.InputInt('##Chatstrings', ints.chatstrings, 1, 1) then 
 					if ints.chatstrings.v < 10 then ints.chatstrings.v = 10 end
 					if ints.chatstrings.v > 20 then ints.chatstrings.v = 20 end
-					send('/pagesize '..ints.chatstrings.v)
+					send('/pagesize'..ints.chatstrings.v)
 					cfg.settings.chatstrings = ints.chatstrings.v 
 				end
-				imgui.PopItemWidth()]]--
+				imgui.PopItemWidth()]]
 			end
 			if menu == 5 then
 				imgui.PushFont(fontsize)
@@ -927,12 +929,12 @@ function imgui.OnDrawFrame()
         		imgui.PopFont()
 				imgui.Separator()
 				imgui.offset(u8'Активация меню: ') 
-			if imgui.Combo(u8'##Активация', ints.active, {u8'Команда', u8'Чит-код'}, -1) then cfg.settings.active = ints.active.v save() end
-			if imgui.IsItemHovered() then
-	            imgui.BeginTooltip()
-	                imgui.Text(u8'После изменения режима активации, сохраните скрипт.')
-	            imgui.EndTooltip()
-            end
+				if imgui.Combo(u8'##Активация', ints.active, {u8'Команда', u8'Чит-код'}, -1) then cfg.settings.active = ints.active.v save() end
+				if imgui.IsItemHovered() then
+					imgui.BeginTooltip()
+						imgui.Text(u8'После изменения режима активации, сохраните скрипт.')
+					imgui.EndTooltip()
+				end
 				if ints.active.v == 1 then
 					imgui.offset(u8' Чит-код: ')
 					if imgui.InputTextWithHint(u8"##Чит Код", cfg.settings.cheatcode, buffers.cheatcode) then cfg.settings.cheatcode = buffers.cheatcode.v end
@@ -1230,6 +1232,7 @@ function imgui.OnDrawFrame()
 		imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(500, 325), imgui.Cond.FirstUseEver)
 		imgui.Begin('OS Helper | Colors Menu', frames.colors, imgui.WindowFlags.NoResize)
+			imgui.Image(colorslist, imgui.ImVec2(480, 1400))
 		imgui.End()
 	end
    	local input = sampGetInputInfoPtr()
@@ -2547,6 +2550,13 @@ function imgui.ToggleButton(str_id, bool)
 	draw_list:AddRectFilled(p, imgui.ImVec2(p.x + width, p.y + height), col_bg, height * 0.5)
 	draw_list:AddCircleFilled(imgui.ImVec2(p.x + radius + t * (width - radius * 2.0), p.y + radius), radius - 1.5, imgui.GetColorU32(bool.v and imgui.GetStyle().Colors[imgui.Col.ButtonActive] or imgui.GetStyle().Colors[imgui.Col.Button]))
 	return rBool
+end
+
+function autoSave()
+	while true do 
+		wait(60000) -- сохранение каждые 60 секунд
+		inicfg.save(cfg, "OSHelper.ini")
+	end
 end
 
 -- theme
