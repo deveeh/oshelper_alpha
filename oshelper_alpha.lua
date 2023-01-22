@@ -21,7 +21,7 @@
 
 -- script
 script_name('OS Helper')
-script_version('1.5.5 alpha')
+script_version('1.5.6 alpha')
 script_author('OS Production') 
 
 -- libraries
@@ -1071,6 +1071,7 @@ function imgui.OnDrawFrame()
 					end
 					imgui.SameLine()
 					imgui.Text(u8'Изменить расположение')
+					imgui.TextQuestion(u8'Для подтверждения изменения положения нажмите ПРОБЕЛ')
 				end
 				if imgui.Checkbox(u8'Onlineboard', checkboxes.activepanel) then cfg.onlinepanel.activepanel = checkboxes.activepanel.v end
 				if checkboxes.activepanel.v then 
@@ -1110,6 +1111,7 @@ function imgui.OnDrawFrame()
 						end
 					imgui.SameLine()
 					imgui.Text(u8'Изменить расположение')
+					imgui.TextQuestion(u8'Для подтверждения изменения положения нажмите ПРОБЕЛ')
 				end
 			end
 			imgui.EndChild()
@@ -1157,7 +1159,7 @@ function imgui.OnDrawFrame()
 					if imgui.InputTextWithHint(u8"##prstring", u8"/vr Работает БК Эдово №57!", buffers.stringmsg) then cfg.settings.stringmsg = buffers.stringmsg.v end
 				end
 				imgui.Separator()
-				if imgui.Checkbox(u8'Включение рекламы при заходе', checkboxes.prconnect) then cfg.settings.prconnect = checkboxes.prconnect.v end
+				--if imgui.Checkbox(u8'Включение рекламы при заходе', checkboxes.prconnect) then cfg.settings.prconnect = checkboxes.prconnect.v end
 				imgui.Text(u8'Задержка: ')
 				imgui.SameLine()
 				imgui.PushItemWidth(40)
@@ -1201,6 +1203,8 @@ function imgui.OnDrawFrame()
 		imgui.End()
 	end
 	if frames.onlinepanel.v then
+		local ses = {cfg.onlinepanel.sesOnline, cfg.onlinepanel.sesAfk, cfg.onlinepanel.sesFull}
+		local day = {cfg.onlinepanel.dayOnline, cfg.onlinepanel.dayAfk, cfg.onlinepanel.dayFull}
 		imgui.SetNextWindowPos(imgui.ImVec2(onlineposX, onlineposY), imgui.Cond.Always)
 		imgui.Begin("##onlpanel", frames.mypanel.v, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar)
 			if sampGetGamestate() ~= 3 then 
@@ -1215,7 +1219,7 @@ function imgui.OnDrawFrame()
 				if cfg.onlinepanel.dayFull then 
 					imgui.Text(u8"Онлайн за день: "..get_clock(cfg.onDay.full)) 
 				end	
-				if cfg.onlinepanel.dayOnline and cfg.onlinepanel.dayAfk and cfg.onlinepanel.dayFull and cfg.onlinepanel.sesOnline and cfg.onlinepanel.sesAfk and cfg.onlinepanel.sesFull then imgui.Separator() end 
+				if cfg.onlinepanel.dayFull or cfg.onlinepanel.dayAfk or cfg.onlinepanel.dayOnline and ses then if cfg.onlinepanel.sesFull or cfg.onlinepanel.sesAfk or cfg.onlinepanel.sesOnline and day then imgui.Separator() end end 
 				if cfg.onlinepanel.sesOnline then
 					imgui.Text(u8"Сессия (чистая): "..get_clock(sesOnline.v))
 				end
@@ -1231,7 +1235,7 @@ function imgui.OnDrawFrame()
 	if frames.colors.v then 
 		imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		imgui.SetNextWindowSize(imgui.ImVec2(500, 325), imgui.Cond.FirstUseEver)
-		imgui.Begin('OS Helper | Colors Menu', frames.colors, imgui.WindowFlags.NoResize)
+		imgui.Begin('Colors Menu (OS '..thisScript().version..')', frames.colors, imgui.WindowFlags.NoResize)
 			imgui.Image(colorslist, imgui.ImVec2(480, 1400))
 		imgui.End()
 	end
@@ -1840,7 +1844,7 @@ function piar()
 			if pronoroff and checkboxes.fam.v then
 				send('/fam '..u8:decode(buffers.fammsg.v))
 			end
-			wait(1000)
+			wait(5000)
 			if pronoroff and checkboxes.al.v then
 				send('/al '..u8:decode(buffers.almsg.v))
 			end
@@ -1848,11 +1852,11 @@ function piar()
 			if pronoroff and checkboxes.adbox.v then
 				send('/ad 1 '..u8:decode(buffers.admsg1.v))
 			end
-			wait(1000)
+			wait(4000)
 			if pronoroff and checkboxes.bchat.v then
 				send('/b '..u8:decode(buffers.bmsg.v))
 			end
-			wait(2000)
+			wait(3000)
 			if pronoroff and checkboxes.prstring.v then
 				send(u8:decode(buffers.stringmsg.v))
 			end
