@@ -21,7 +21,7 @@
 
 -- script
 script_name('OS Helper')
-script_version('1.5.3 alpha')
+script_version('1.5.4 alpha')
 script_author('OS Production') 
 
 -- libraries
@@ -360,7 +360,7 @@ local sesOnline = imgui.ImInt(0)
 local sesAfk = imgui.ImInt(0)
 local sesFull = imgui.ImInt(0)
 local dayFull = imgui.ImInt(cfg.onDay.full)
-local weekFull = imgui.ImInt(cfg.onWeek.full)
+--local weekFull = imgui.ImInt(cfg.onWeek.full)
 local Radio = {
 	['sesOnline'] = cfg.onlinepanel.sesOnline,
 	['sesAfk'] = cfg.onlinepanel.sesAfk,
@@ -814,7 +814,7 @@ function imgui.OnDrawFrame()
 	elseif cfg.settings.theme == 7 then themeSettings(7) cfg.settings.color = '{BF0072}' cfg.settings.xcolor = 'BF0072'
 	elseif cfg.settings.theme == 8 then themeSettings(8) cfg.settings.color = '{755B46}' cfg.settings.xcolor = '755B46'
 	elseif cfg.settings.theme == 9 then themeSettings(9) cfg.settings.color = '{5E5E5E}' cfg.settings.xcolor = '5E5E5E'
-	elseif cfg.settings.theme == 10 then themeSettings(10)
+	elseif cfg.settings.theme == 10 then themeSettings(10) color = join_rgba(colortheme.v[1] * 255, colortheme.v[2] * 255, colortheme.v[3] * 255, 0) color = '{'..('%06X'):format(color)..'}' cfg.settings.color = color
 	end
     if frames.window.v then
     		imgui.SetNextWindowPos(imgui.ImVec2(resX / 2 , resY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
@@ -934,6 +934,7 @@ function imgui.OnDrawFrame()
 						elseif cfg.settings.theme == 7 then themeSettings(7) color = '{BF0072}'
 						elseif cfg.settings.theme == 8 then themeSettings(8) color = '{755B46}'
 						elseif cfg.settings.theme == 9 then themeSettings(9) color = '{5E5E5E}'
+						elseif cfg.settings.theme == 10 then themeSettings(10)
 					end
 				end
 				if ints.theme.v == 10 then
@@ -1187,16 +1188,7 @@ function imgui.OnDrawFrame()
 		imgui.Begin("##onlpanel", frames.mypanel.v, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.AlwaysAutoResize + imgui.WindowFlags.NoTitleBar)
 			if sampGetGamestate() ~= 3 then 
 				imgui.CenterText(u8"Подключение: "..get_clock(connectingTime))
-			else	
-				if cfg.onlinepanel.sesOnline then
-					imgui.Text(u8"Сессия (чистая): "..get_clock(sesOnline.v))
-				end
-				if cfg.onlinepanel.sesAfk then
-					imgui.Text(u8"AFK за сессию: "..get_clock(sesAfk.v))
-				end
-				if cfg.onlinepanel.sesFull then
-					imgui.Text(u8"Сессия (полная): "..get_clock(sesFull.v))
-				end
+			else
 				if cfg.onlinepanel.dayOnline then 
 					imgui.Text(u8"За день (чистый): "..get_clock(cfg.onDay.online)) 
 				end
@@ -1205,6 +1197,15 @@ function imgui.OnDrawFrame()
 				end
 				if cfg.onlinepanel.dayFull then 
 					imgui.Text(u8"Онлайн за день: "..get_clock(cfg.onDay.full)) 
+				end	
+				if cfg.onlinepanel.sesOnline then
+					imgui.Text(u8"Сессия (чистая): "..get_clock(sesOnline.v))
+				end
+				if cfg.onlinepanel.sesAfk then
+					imgui.Text(u8"AFK за сессию: "..get_clock(sesAfk.v))
+				end
+				if cfg.onlinepanel.sesFull then
+					imgui.Text(u8"Онлайн за сессию: "..get_clock(sesFull.v))
 				end
 			end
 		imgui.End()
@@ -1223,7 +1224,7 @@ function imgui.OnDrawFrame()
 	    imgui.SetNextWindowPos(imgui.ImVec2(windowPosX, windowPosY + 30 + 30), imgui.Cond.FirstUseEver)
 	    imgui.SetNextWindowSize(imgui.ImVec2(result:len()*10, 30))
         imgui.Begin('Solve', frames.cwindow, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
-        imgui.CenterText(u8(number_separator(result)))
+        imgui.CenterText(u8(calcseparator(result)))
         imgui.End()
     end
     if frames.musicmenu.v then 
@@ -1532,13 +1533,13 @@ function time()
 	        cfg.onDay.full = dayFull.v + sesFull.v 						-- Общий онлайн за день
 	        cfg.onDay.afk = cfg.onDay.full - cfg.onDay.online			-- АФК за день
 
-	        cfg.onWeek.online = cfg.onWeek.online + 1 					-- Онлайн за неделю без учёта АФК
+	       --[[cfg.onWeek.online = cfg.onWeek.online + 1 					-- Онлайн за неделю без учёта АФК
 	        cfg.onWeek.full = weekFull.v + sesFull.v 					-- Общий онлайн за неделю
 	        cfg.onWeek.afk = cfg.onWeek.full - cfg.onWeek.online		-- АФК за неделю
 
             local today = tonumber(os.date('%w', os.time()))
             cfg.myWeekOnline[today] = cfg.onDay.full		
-            connectingTime = 0
+            connectingTime = 0]]--
 	    else
             connectingTime = connectingTime + 1                        -- Вермя подключения к серверу
 	    	startTime = startTime + 1									-- Смещение начала отсчета таймеров
@@ -1660,7 +1661,7 @@ function imgui.InputTextWithHint(label, hint, buf, flags, callback, user_data)
     return handle
 end
 
-function number_separator(n) 
+function calcseparator(n) 
 	local left, num, right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
 	return left..(num:reverse():gsub('(%d%d%d)','%1 '):reverse())..right
 end
