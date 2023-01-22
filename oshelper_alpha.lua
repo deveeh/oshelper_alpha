@@ -21,7 +21,7 @@
 
 -- script
 script_name('OS Helper')
-script_version('1.5.6 alpha')
+script_version('1.5.7 alpha')
 script_author('OS Production') 
 
 -- libraries
@@ -123,6 +123,7 @@ local cfg = inicfg.load({
 		open = false,
 		fish = false,
 		infrun = false,
+		chateditor = false,
 		ztimerstatus = false,
 		prsh1 = 0,
 		prsh2 = 0,
@@ -237,6 +238,7 @@ local checkboxes = {
 	osplayer = imgui.ImBool(cfg.settings.osplayer),
 	infrun = imgui.ImBool(cfg.settings.infrun),
 	vr1 = imgui.ImBool(cfg.settings.vr1),
+	chateditor = imgui.ImBool(cfg.settings.chateditor),
 	gunmaker = imgui.ImBool(cfg.settings.gunmaker),
 	antilomka = imgui.ImBool(cfg.settings.antilomka),
 	vskin = imgui.ImBool(cfg.settings.vskin),
@@ -890,15 +892,29 @@ function imgui.OnDrawFrame()
                         imgui.Text(u8'/biz - /bizinfo\n/car [id] - /fixmycar\n/fh [id] - /findihouse\n/fbiz [id] - /findibiz\n/urc - /unrentcar\n/fin [id] [id biz] - /showbizinfo\n/ss - /setspawn')
                     imgui.EndTooltip()
                 end
-			--[[	imgui.Text(u8'	Количество строк в чате:') imgui.SameLine()
-				imgui.PushItemWidth(75) 
-				if imgui.InputInt('##Chatstrings', ints.chatstrings, 1, 1) then 
-					if ints.chatstrings.v < 10 then ints.chatstrings.v = 10 end
-					if ints.chatstrings.v > 20 then ints.chatstrings.v = 20 end
-					send('/pagesize'..ints.chatstrings.v)
-					cfg.settings.chatstrings = ints.chatstrings.v 
+				if imgui.Checkbox(u8'Chat Editor', checkboxes.chateditor) then cfg.settings.chateditor = checkboxes.chateditor.v end
+				if checkboxes.chateditor.v then 
+					imgui.Text(u8'	Количество строк в чате:') imgui.SameLine()
+					imgui.PushItemWidth(75) 
+					if imgui.InputInt('##Chatstrings', ints.chatstrings, 1, 1) then 
+						if ints.chatstrings.v < 10 then ints.chatstrings.v = 10 end
+						if ints.chatstrings.v > 20 then ints.chatstrings.v = 20 end
+						print(ints.chatstrings.v)
+						sampProcessChatInput('/pagesize '..ints.chatstrings.v)
+						cfg.settings.chatstrings = ints.chatstrings.v 
+					end
+					imgui.PopItemWidth()
+					imgui.Text(u8'	Размер шрифта в чате:') imgui.SameLine()
+					imgui.PushItemWidth(75) 
+					if imgui.InputInt('##Chatfontsize', ints.chatfontsize, 1, 1) then 
+						if ints.chatfontsize.v < 0 then ints.chatfontsize.v = 0 end
+						if ints.chatfontsize.v > 5 then ints.chatfontsize.v = 5 end
+						print(ints.chatfontsize.v)
+						sampProcessChatInput('/fontsize '..ints.chatfontsize.v)
+						cfg.settings.chatfontsize = ints.chatfontsize.v 
+					end
+					imgui.PopItemWidth()
 				end
-				imgui.PopItemWidth()]]
 			end
 			if menu == 5 then
 				imgui.PushFont(fontsize)
@@ -1636,6 +1652,11 @@ function imgui.Link(link,name,myfunc)
 	return resultBtn
 end
 
+function sampev.onSetInterior(interior)
+    if interior == 10 then
+        msg('ID цветов для покраски машин - /colors')
+    end
+end
 
 function imgui.TextQuestion(text)
 	imgui.SameLine()
