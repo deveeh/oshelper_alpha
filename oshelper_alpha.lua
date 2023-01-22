@@ -17,6 +17,7 @@
 		средние цены для ЦР (by cosmo) [ none ] ,
 		сепаратор денег для лавки ЦР [ none ] ,
 		изменить перемещение инфоборда на ЛКМ [ wait ] ,
+		сделать чатсайз (строка 890) [ wait ] ,
 ]]
 
 -- script
@@ -145,6 +146,8 @@ local cfg = inicfg.load({
 		g = 0.00,
 		b = 0.00,
 		carhp = false,
+		chatstrings = 10,
+		chatfontsize = 0,
 	},
 	keyboard = {
 		kbact = false,
@@ -274,9 +277,11 @@ local checkboxes = {
 	carhp = imgui.ImBool(cfg.settings.carhp),
 	activepanel = imgui.ImBool(cfg.onlinepanel.activepanel),
 }
+local sliders = {
+	fov = imgui.ImInt(cfg.settings.fov),
+}
 local ints = {
 	theme = imgui.ImInt(cfg.settings.theme),
-	fov = imgui.ImInt(cfg.settings.fov),
 	logincard = imgui.ImInt(cfg.settings.logincard),
 	hpmed = imgui.ImInt(cfg.settings.hpmed),
 	prsh1 = imgui.ImInt(cfg.settings.prsh1),
@@ -291,7 +296,8 @@ local ints = {
 	active = imgui.ImInt(cfg.settings.active),
 	edelay = imgui.ImInt(cfg.settings.edelay),
 	gunmode = imgui.ImInt(cfg.settings.gunmode),
-
+	chatstrings = imgui.ImInt(cfg.settings.chatstrings),
+	chatfontsize = imgui.ImInt(cfg.settings.chatfontsize),
 }
 local buffers = {
 	fammsg = imgui.ImBuffer(''..cfg.settings.fammsg, 256),
@@ -642,9 +648,9 @@ while true do
         timech = timech + 1
         if checkboxes.fisheye.v then
 	        if isCurrentCharWeapon(PLAYER_PED, 34) and isKeyDown(2) then
-				cameraSetLerpFov(ints.fov.v, ints.fov.v, 1000, 1)
+				cameraSetLerpFov(sliders.fov.v, sliders.fov.v, 1000, 1)
 			else
-				cameraSetLerpFov(ints.fov.v, ints.fov.v, 1000, 1)
+				cameraSetLerpFov(sliders.fov.v, sliders.fov.v, 1000, 1)
 			end
 		end
         if checkboxes.calcbox.v then
@@ -882,6 +888,15 @@ function imgui.OnDrawFrame()
                         imgui.Text(u8'/biz - /bizinfo\n/car [id] - /fixmycar\n/fh [id] - /findihouse\n/fbiz [id] - /findibiz\n/urc - /unrentcar\n/fin [id] [id biz] - /showbizinfo\n/ss - /setspawn')
                     imgui.EndTooltip()
                 end
+				--[[imgui.Text(u8'	Количество строк в чате:') imgui.SameLine()
+				imgui.PushItemWidth(75) 
+				if imgui.InputInt('##Chatstrings', ints.chatstrings, 1, 1) then 
+					if ints.chatstrings.v < 10 then ints.chatstrings.v = 10 end
+					if ints.chatstrings.v > 20 then ints.chatstrings.v = 20 end
+					send('/pagesize '..ints.chatstrings.v)
+					cfg.settings.chatstrings = ints.chatstrings.v 
+				end
+				imgui.PopItemWidth()]]--
 			end
 			if menu == 5 then
 				imgui.PushFont(fontsize)
@@ -996,7 +1011,7 @@ function imgui.OnDrawFrame()
 				if imgui.Checkbox(u8'Настройка FOV', checkboxes.fisheye) then cfg.settings.fisheye = checkboxes.fisheye.v end
 				if checkboxes.fisheye.v then
 					imgui.Text(u8'	FOV:') imgui.SameLine()
-					if imgui.SliderInt('##FOV', ints.fov, 1, 100) then cfg.settings.fov = ints.fov.v end
+					if imgui.SliderInt('##FOV', sliders.fov, 1, 100) then cfg.settings.fov = sliders.fov.v end
 				end
 			end
 			if menu == 9 then
@@ -1030,13 +1045,13 @@ function imgui.OnDrawFrame()
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать время", checkboxes.timeact) then cfg.infopanel.timeact = checkboxes.timeact.v end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать HP", checkboxes.hpact) then cfg.infopanel.hpact = checkboxes.hpact.v end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать HP бронежилета", checkboxes.armouract) then cfg.infopanel.armouract = checkboxes.armouract.v end
-					imgui.Text('	') imgui.SameLine() if imgui.Button('X', imgui.ImVec2(20, 20)) then
+					imgui.Text('	') imgui.SameLine() if imgui.Button('X##panel', imgui.ImVec2(20, 20)) then
 						lua_thread.create(function()
 							showCursor(true, true)
 							checkCursor = true
 							frames.window.v = false
 							sampSetCursorMode(4)
-							msg('Нажмите ЛКМ для сохранения позиции.')
+							msg('Нажмите ПРОБЕЛ для сохранения позиции.')
 							while checkCursor do
 								local cX, cY = getCursorPos()
 									posX, posY = cX, cY
@@ -1057,7 +1072,7 @@ function imgui.OnDrawFrame()
 				end
 				if imgui.Checkbox(u8'Onlineboard', checkboxes.activepanel) then cfg.onlinepanel.activepanel = checkboxes.activepanel.v end
 				if checkboxes.activepanel.v then 
-				--[[	imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать онлайн за сессию", checkboxes.sesOnline) then cfg.onlinepanel.sesOnline = checkboxes.sesOnline end
+					--[[imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать онлайн за сессию", checkboxes.sesOnline) then cfg.onlinepanel.sesOnline = checkboxes.sesOnline end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать афк за сессию", checkboxes.sesAfk) then cfg.onlinepanel.sesAfk = checkboxes.sesAfk end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать полную сессию", checkboxes.sesFull) then cfg.onlinepanel.sesFull = checkboxes.sesFull end
 					imgui.Text('	') imgui.SameLine() if imgui.Checkbox(u8"Отображать онлайн за день", checkboxes.dayOnline) then cfg.onlinepanel.dayOnline = checkboxes.dayOnline end
@@ -1069,28 +1084,28 @@ function imgui.OnDrawFrame()
 					imgui.Text('	') imgui.SameLine()	if imgui.RadioButton(u8'Онлайн за день', Radio['dayOnline']) then Radio['dayOnline'] = not Radio['dayOnline']; cfg.onlinepanel.dayOnline = Radio['dayOnline'] end
 					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'АФК за день', Radio['dayAfk']) then Radio['dayAfk'] = not Radio['dayAfk']; cfg.onlinepanel.dayAfk = Radio['dayAfk'] end
 					imgui.Text('	') imgui.SameLine() if imgui.RadioButton(u8'Общий за день', Radio['dayFull']) then Radio['dayFull'] = not Radio['dayFull']; cfg.onlinepanel.dayFull = Radio['dayFull'] end
-					imgui.Text('	') imgui.SameLine() if imgui.Button('X', imgui.ImVec2(20, 20)) then
-						lua_thread.create(function()
-							showCursor(true, true)
-							checkCursor = true
-							frames.window.v = false
-							sampSetCursorMode(4)
-							msg('Нажмите ЛКМ для сохранения позиции.')
-							while checkCursor do
-								local ocX, ocY = getCursorPos()
+					imgui.Text('	') imgui.SameLine() if imgui.Button('X##online', imgui.ImVec2(20, 20)) then
+						lua_thread.create(function ()
+								showCursor(true, true)
+								checkCursor = true
+								frames.window.v = false
+								sampSetCursorMode(4)
+								msg('Нажмите ПРОБЕЛ для сохранения позиции.')
+								while checkCursor do
+									local ocX, ocY = getCursorPos()
 									onlineposX, onlineposY = ocX, ocY
 									if isKeyDown(32) then
 										sampSetCursorMode(0)
 										cfg.onlinepanel.x, cfg.onlinepanel.y = onlineposX, onlineposY
-											renderWindow[0] = true
+											frames.window.v = true
 											checkCursor = false
 											showCursor(false, false)
 										if inicfg.save(cfg, "OSHelper.ini") then msg('Позиция панели сохранена!') end
 									end
-								wait(0)
-							end
-						end)
-					end
+									wait(0)
+								end
+							end)
+						end
 					imgui.SameLine()
 					imgui.Text(u8'Изменить расположение')
 				end
@@ -1198,6 +1213,7 @@ function imgui.OnDrawFrame()
 				if cfg.onlinepanel.dayFull then 
 					imgui.Text(u8"Онлайн за день: "..get_clock(cfg.onDay.full)) 
 				end	
+				if cfg.onlinepanel.dayOnline and cfg.onlinepanel.dayAfk and cfg.onlinepanel.dayFull and cfg.onlinepanel.sesOnline and cfg.onlinepanel.sesAfk and cfg.onlinepanel.sesFull then imgui.Separator() end 
 				if cfg.onlinepanel.sesOnline then
 					imgui.Text(u8"Сессия (чистая): "..get_clock(sesOnline.v))
 				end
@@ -1797,37 +1813,9 @@ function sampev.onSendExitVehicle(id)
 end
 
 function clearchat()
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
-	sampAddChatMessage('', -1)
+	for i = 1, 50 do
+		sampAddChatMessage('', -1)
+	end
 end
 
 function patch_samp_time_set(enable)
@@ -3054,7 +3042,7 @@ function themeSettings(theme)
 		colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
 		colors[clr.ScrollbarGrabHovered]   = ImVec4(0.12, 0.12, 0.12, 1.00);
 		colors[clr.ScrollbarGrabActive]    = ImVec4(0.36, 0.36, 0.36, 1.00);
-		colors[clr.ComboBg]                = ImVec4(0.02, 0.02, 0.02, 0.39);
+		colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
 		colors[clr.CheckMark]              = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
 		colors[clr.SliderGrab]             = ImVec4(colortheme.v[1], colortheme.v[2], colortheme.v[3], 1.00);
 		colors[clr.SliderGrabActive]       = ImVec4(colortheme.v[1] / (1/0.75), colortheme.v[2] / (1/0.75), colortheme.v[3] / (1/0.75), 1.00);
