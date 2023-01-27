@@ -14,12 +14,12 @@
 		оптимизация кода + буст производительности [ successfully ] ,
 		средние цены для ЦР (by cosmo) [ none ] ,
 		сепаратор денег для лавки ЦР [ none ] ,
-		сделать чатсайз (строка 890) [ wait ] ,
+		сделать чатсайз (строка 890) [ successfully ] ,
 ]]
 
 -- script
 script_name('OS Helper')
-script_version('1.5.8 alpha')
+script_version('1.5.9 alpha')
 script_author('OS Production') 
 
 -- libraries
